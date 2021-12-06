@@ -3,11 +3,10 @@ import json
 import pandas as pd
 import numpy as np
 from transformers import BertModel, BertTokenizer
+import gc
 import re
 
 DTI = pd.read_csv('./data/DTI.csv')
-breakpoint = 'Q6FTN8'
-
 def protein_seq():
     seqs = np.loadtxt('./data/proteins.csv', dtype=str)
     can_download = False
@@ -29,21 +28,34 @@ def protein_seq():
             print(protein, e)
     np.savetxt('./data/proteins.csv', seqs, fmt='%s', delimiter=',')
 
+breakpoint = 'Q92736'
 def protein_token():
     seqs = np.loadtxt('./data/proteins.csv', dtype=str, delimiter=',')
     tokenizer = BertTokenizer.from_pretrained("Rostlab/prot_bert", do_lower_case=False)
     model = BertModel.from_pretrained("Rostlab/prot_bert")
+    can_continue = False
 
-    all_tokens = []
-    all_poolers = []
-    for protein, seq in seqs:
-        s = " ".join(list(seq))
-        s = re.sub(r"[UZOB]", "X", s)
-        encoded_input = tokenizer(s, return_tensors='pt')
-        output = model(**encoded_input)
-        all_poolers.append(output.pooler_output[0])
-        print(output.last_hidden_state[0].shape)
-        print(output.pooler_output[0].shape)
+    file = './embedding.csv'
+    with open(file, 'a+') as f:
+        for protein, seq in seqs:
+            if protein == breakpoint: 
+                can_continue = True
+                continue
+            if can_continue == False: continue
+
+            s = " ".join(list(seq))
+            s = re.sub(r"[UZOB]", "X", s)
+            encoded_input = tokenizer(s, return_tensors='pt')
+            output = model(**encoded_input)
+            ll = output.pooler_output[0].detach().numpy().tolist()
+            line = protein + ',' + ','.join(map(str, ll))
+            f.write(line + '\n')   #加\n换行显示
+            del encoded_input
+            del output
+            del line
+            del ll
+            gc.collect()
+            print(protein, 'OK')
 
 def drug_smile():
     pass
