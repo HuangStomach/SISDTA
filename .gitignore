@@ -1,3 +1,5 @@
+data/**/*.csv
+data/**/*.tsv
 data/*.csv
 data/*.tsv
 _test*
