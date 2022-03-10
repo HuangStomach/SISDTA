@@ -69,9 +69,9 @@ def protein_token():
             gc.collect()
             print(protein, 'OK')
 
-def protein_go():
+def protein_go(type):
     seqs = []
-    protein_dict = np.loadtxt('./data/protein/proteins.csv', dtype=str, delimiter=',')[:, 0]
+    protein_dict = np.loadtxt('./data/{}/protein.csv'.format(type), dtype=str, delimiter=',')[:, 0]
     protein_url = 'https://rest.uniprot.org/beta/uniprotkb/{}.json'
 
     for protein in protein_dict:
@@ -95,7 +95,7 @@ def protein_go():
             print(protein, e)
             seqs.append([protein, 'ERROR'])
     
-    np.savetxt('./data/protein/protein_go.csv', seqs, fmt='%s', delimiter=',')
+    np.savetxt('./data/{}/protein_go.csv'.format(type), seqs, fmt='%s', delimiter=',')
 
 def drug_smile():
     seqs = []
@@ -131,4 +131,4 @@ if __name__=='__main__':
     # protein_token()
     # drug_smile()
     # drug_ecfps()
-    protein_go()
+    protein_go('kiba')
