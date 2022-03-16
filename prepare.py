@@ -94,8 +94,21 @@ def protein_go(type):
         except Exception as e:
             print(protein, e)
             seqs.append([protein, 'ERROR'])
+
+def protein_go_vector(type):
+    protein_go = np.loadtxt('./data/{}/protein_go.csv'.format(type), dtype=str, delimiter=',')
+    proteins = protein_go[:, 0]
+    go_set = set()
+    for _, go_vectors in protein_go:
+        for v in go_vectors.split(";"):
+            go_set.add(v)
     
-    np.savetxt('./data/{}/protein_go.csv'.format(type), seqs, fmt='%s', delimiter=',')
+    df = pd.DataFrame(None, index=proteins, columns=go_set).fillna(0)
+    for i, protein in enumerate(proteins):
+        for go in protein_go[i][1].split(";"):
+            df.loc[protein, go] = 1
+
+    df.to_csv('./data/{}/protein_go_vector.csv'.format(type))
 
 def drug_smile():
     seqs = []
@@ -131,4 +144,5 @@ if __name__=='__main__':
     # protein_token()
     # drug_smile()
     # drug_ecfps()
-    protein_go('kiba')
+    # protein_go('kiba')
+    protein_go_vector('kiba')
