@@ -125,24 +125,38 @@ def drug_smile():
 
     np.savetxt('./data/drug/smiles.csv', seqs, fmt='%s', delimiter=',')
 
-def drug_ecfps():
+def drug_ecfps(dataType = 'drugcentral'):
+    radius = 4
     seqs = []
 
-    drugs = np.loadtxt('./data/drug/smiles.csv', delimiter=',', dtype=str, comments=None)
+    drugs = np.loadtxt('./data/{}/drug_smiles.csv'.format(dataType), delimiter=',', dtype=str, comments=None)
     for drug in drugs:
         try:
             name, smiles = drug
             mol = Chem.MolFromSmiles(smiles)
-            seqs.append(AllChem.GetMorganFingerprintAsBitVect(mol, 3, nBits=1024).ToList())
+            seqs.append(AllChem.GetMorganFingerprintAsBitVect(mol, radius, nBits=1024).ToList())
         except Exception as e:
             print(drug)
 
-    np.savetxt('./data/drug/ecfps.csv', seqs, fmt='%s', delimiter=',')
+    np.savetxt('./data/{}/drug_ecfps.csv'.format(dataType), seqs, fmt='%d', delimiter=',')
+
+def drug_intersect1d(dataType = 'drugcentral'):
+    drug_ecfps = np.loadtxt('./data/{}/drug_ecfps.csv'.format(dataType), delimiter=',', dtype=int, comments=None)
+    drug_count = drug_ecfps.shape[0]
+    matrix = np.zeros((drug_count, drug_count))
+
+    for i in range(drug_count):
+        for j in range(drug_count):
+            inter = np.sum(np.bitwise_and(drug_ecfps[i], drug_ecfps[j]))
+            matrix[i][j] = 1 - ((np.sum(drug_ecfps[j]) - inter) / np.sum(drug_ecfps[j]))
+    np.savetxt('./data/{}/drug_intersect.csv'.format(dataType), matrix, fmt='%s', delimiter=',')
 
 if __name__=='__main__':
+    dataType = 'drugcentral'
     # protein()
     # protein_token()
     # drug_smile()
-    # drug_ecfps()
+    # drug_ecfps(dataType)
+    drug_intersect1d(dataType)
     # protein_go('kiba')
-    protein_go_vector('kiba')
+    # protein_go_vector('kiba')
