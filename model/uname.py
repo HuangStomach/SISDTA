@@ -1,7 +1,4 @@
-import torch
 import torch.nn as nn
-# from torch_geometric.nn import Sequential, GCNConv
-from lib import *
 
 class Uname(nn.Module):
     def __init__(self):
@@ -21,3 +18,5 @@ class Uname(nn.Module):
     def forward(self, x):
         encoded = self.encoder(x)
         decoded = self.decoder(encoded)
+        
+        return encoded, decoded

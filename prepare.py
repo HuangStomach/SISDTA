@@ -35,16 +35,16 @@ def protein_seq():
     np.savetxt('./data/protein/proteins.csv', seqs, fmt='%s', delimiter=',')
 
 # breakpoint = 'P78527'
-threshold = 4100
-def protein_token():
-    seqs = np.loadtxt('./data/protein/proteins.csv', dtype=str, delimiter=',')
+threshold = 4128
+def protein_token(dataType = 'drugcentral'):
+    seqs = np.loadtxt('./data/{}/protein.csv'.format(dataType), dtype=str, delimiter=',')
     tokenizer = BertTokenizer.from_pretrained("Rostlab/prot_bert", do_lower_case=False)
     model = BertModel.from_pretrained("Rostlab/prot_bert")
     can_continue = False
 
-    file = './data/protein/embedding.csv'
+    file = './data/{}/protein_embedding.csv'.format(dataType)
     with open(file, 'a+') as f:
-        for protein, seq in seqs:
+        for protein, _, seq in seqs:
             # if protein == breakpoint: 
             #     can_continue = True
             #     continue
@@ -95,7 +95,7 @@ def protein_go(type):
             print(protein, e)
             seqs.append([protein, 'ERROR'])
 
-def protein_go_vector(type):
+def protein_go_vector(type = 'drugcentral'):
     protein_go = np.loadtxt('./data/{}/protein_go.csv'.format(type), dtype=str, delimiter=',')
     proteins = protein_go[:, 0]
     go_set = set()
@@ -108,7 +108,7 @@ def protein_go_vector(type):
         for go in protein_go[i][1].split(";"):
             df.loc[protein, go] = 1
 
-    df.to_csv('./data/{}/protein_go_vector.csv'.format(type))
+    df.to_csv('./data/{}/protein_go_vector.csv'.format(type), header=False, index=False)
 
 def drug_smile():
     seqs = []
@@ -125,18 +125,34 @@ def drug_smile():
 
     np.savetxt('./data/drug/smiles.csv', seqs, fmt='%s', delimiter=',')
 
-def drug_ecfps(dataType = 'drugcentral'):
+def drug_ecfps(dataType = 'drugcentral', filename = 'drug_smiles.csv'):
     radius = 4
     seqs = []
+    type = filename.split('.')[1]
+    if type == 'csv':
+        drugs = np.loadtxt('./data/{}/{}'.format(dataType, filename), delimiter=',', dtype=str, comments=None)
 
-    drugs = np.loadtxt('./data/{}/drug_smiles.csv'.format(dataType), delimiter=',', dtype=str, comments=None)
-    for drug in drugs:
-        try:
-            name, smiles = drug
-            mol = Chem.MolFromSmiles(smiles)
-            seqs.append(AllChem.GetMorganFingerprintAsBitVect(mol, radius, nBits=1024).ToList())
-        except Exception as e:
-            print(drug)
+        for drug in drugs:
+            try:
+                _, smiles = drug
+                mol = Chem.MolFromSmiles(smiles)
+                seqs.append(AllChem.GetMorganFingerprintAsBitVect(mol, radius, nBits=1024).ToList())
+            except Exception as e:
+                print(drug)
+
+    elif type == 'json':
+        fp = open('./data/{}/{}'.format(dataType, filename))
+        drugs = json.load(fp)
+
+        for drug in drugs:
+            try:
+                smiles = drugs[drug]
+                mol = Chem.MolFromSmiles(smiles)
+                seqs.append(AllChem.GetMorganFingerprintAsBitVect(mol, radius, nBits=1024).ToList())
+            except Exception as e:
+                print(drug)
+
+        if fp != None: fp.close()
 
     np.savetxt('./data/{}/drug_ecfps.csv'.format(dataType), seqs, fmt='%d', delimiter=',')
 
@@ -151,12 +167,24 @@ def drug_intersect1d(dataType = 'drugcentral'):
             matrix[i][j] = 1 - ((np.sum(drug_ecfps[j]) - inter) / np.sum(drug_ecfps[j]))
     np.savetxt('./data/{}/drug_intersect.csv'.format(dataType), matrix, fmt='%s', delimiter=',')
 
+def protein_intersect1d(dataType = 'drugcentral'):
+    protein_go_vectors = np.loadtxt('./data/{}/protein_go_vector.csv'.format(dataType), delimiter=',', dtype=int, comments=None)
+    protein_count = protein_go_vectors.shape[0]
+    matrix = np.zeros((protein_count, protein_count))
+
+    for i in range(protein_count):
+        for j in range(protein_count):
+            inter = np.sum(np.bitwise_and(protein_go_vectors[i], protein_go_vectors[j]))
+            matrix[i][j] = 1 - ((np.sum(protein_go_vectors[j]) - inter) / np.sum(protein_go_vectors[j]))
+    np.savetxt('./data/{}/protein_intersect.csv'.format(dataType), matrix, fmt='%s', delimiter=',')
+
 if __name__=='__main__':
-    dataType = 'drugcentral'
+    dataType = 'davis'
     # protein()
-    # protein_token()
+    # protein_token(dataType)
     # drug_smile()
-    # drug_ecfps(dataType)
-    drug_intersect1d(dataType)
+    drug_ecfps(dataType, 'ligands_can.json')
+    # drug_intersect1d(dataType)
     # protein_go('kiba')
-    # protein_go_vector('kiba')
+    # protein_go_vector(dataType)
+    # protein_intersect1d(dataType)
