@@ -8,36 +8,46 @@ handlers = {
 }
 
 class MultiDataset(Dataset):
-    def __init__(self, type = 'kiba', unit = 0.1):
-        self.device = 'cpu'
-        self.handler = handlers[type]()
+    def __init__(self, type = 'kiba', train = True, unit = 0.1, device = 'cpu'):
+        print('initalizing {} {} dataset...'.format(type, 'train' if train else 'test'))
+        self.device = device
+        self.train = train
+        self.handler = handlers[type](self.train)
 
         self.d_ecfps = torch.tensor(self.handler.d_ecfps, dtype=torch.float32, device=self.device)
         self.p_embeddings = torch.tensor(self.handler.p_embeddings, dtype=torch.float32, device=self.device)
         self.p_gos = torch.tensor(self.handler.p_gos, dtype=torch.float32, device=self.device)
         y = self.handler.y
+        drugs = self.handler.drugs
+        proteins = self.handler.proteins
 
-        (dnum, pnum) = y.shape
         indexes = []
         targets = []
         classes = []
-        for i in range(dnum):
-            for j in range(pnum):
-                if np.isnan(y[i][j]) or y[i][j] == 0: continue
-                indexes.append([i, j])
-                targets.append(y[i][j])
+        for k in range(len(drugs)):
+            i = drugs[k]
+            j = proteins[k]
+            if np.isnan(y[i][j]): continue
+            indexes.append([i, j])
+            targets.append(y[i][j])
 
-        for v in targets:
-            classes.append(int(v / unit))
-        
+        if self.train:
+            for v in targets:
+                classes.append(int(v / unit))
+            self.classes = torch.tensor(classes, dtype=torch.long, device=self.device)
+
         self.indexes = torch.tensor(indexes, dtype=torch.long, device=self.device)
         self.targets = torch.tensor(targets, dtype=torch.float32, device=self.device).view(-1, 1)
-        self.classes = torch.tensor(classes, dtype=torch.long, device=self.device)
 
     def __getitem__(self, index):
         dindex, pindex = self.indexes[index]
-        return self.d_ecfps[dindex], self.p_embeddings[pindex], self.p_gos[pindex], \
-            self.targets[index], self.classes[index]
+        res = [
+            self.d_ecfps[dindex], self.p_embeddings[pindex], 
+            self.p_gos[pindex], self.targets[index]
+        ]
+
+        if self.train: res.append(self.classes[index])
+        return res
 
     def __len__(self):
         return self.indexes.size(dim=0)
