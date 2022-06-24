@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+
 class SupConLoss(nn.Module):
 
     def __init__(self, temperature=0.5, scale_by_temperature=True):
@@ -17,7 +18,7 @@ class SupConLoss(nn.Module):
         输出:
             loss值
         """
-        device = torch.device('cuda') if features.is_cuda else torch.device('cpu')
+        device = features.device
         features = F.normalize(features, p=2, dim=1)
         batch_size = features.shape[0]
 
@@ -67,7 +68,7 @@ class SupConLoss(nn.Module):
                     [-1.4312, -0.0776, -0.2009,  0.0000]])       
         '''
         # 构建mask 
-        logits_mask = torch.ones_like(mask) - torch.eye(batch_size)     
+        logits_mask = torch.ones_like(mask, dtype=torch.int, device=device) - torch.eye(batch_size, dtype=torch.int, device=device)
         positives_mask = mask * logits_mask
         negatives_mask = 1. - mask
         '''

@@ -1,83 +1,46 @@
+import torch
 import torch.nn as nn
 
 class FC(nn.Module):
     def __init__(self):
         super(FC, self).__init__()
 
+        # Encoder
+        self.encoder = nn.Sequential(
+            nn.Linear(2812, 1024),
+            nn.ReLU(True),
+            nn.Linear(1024, 512),
+            nn.ReLU(True),
+            nn.Linear(512, 256),
+            nn.ReLU(True),
+            nn.Linear(256, 128),
+        )
+
+        # Decoder
+        self.decoder = nn.Sequential(
+            nn.Linear(128, 256),
+            nn.ReLU(True),
+            nn.Linear(256, 512),
+            nn.ReLU(True),
+            nn.Linear(512, 1024),
+            nn.ReLU(True),
+            nn.Linear(1024, 2812),
+            nn.ReLU(True),
+        )
+
         self.fc = nn.Sequential(
-            nn.Linear(2048, 4096),
+            nn.Linear(2048 + 128, 4096),
             nn.ReLU(True),
             nn.Linear(4096, 512),
             nn.ReLU(True),
-            nn.Linear(512, 1),
+            nn.Linear(512, 128),
+            nn.ReLU(True),
+            nn.Linear(128, 1),
         )
 
-    def forward(self, x):
-        return self.fc(x)
+    def forward(self, x, gos):
+        encoded = self.encoder(gos)
+        decoded = self.decoder(encoded)
+        res = self.fc(torch.cat((x, encoded), dim = 1))
 
-class AutoEncoder(nn.Module):
-    def __init__(self):
-        super(AutoEncoder, self).__init__()
-
-        # Encoder
-        self.encoder = nn.Sequential(
-            nn.Linear(784, 128),
-            nn.Tanh(),
-            nn.Linear(128, 64),
-            nn.Tanh(),
-            nn.Linear(64, 16),
-            nn.Tanh(),
-            nn.Linear(16, 2),
-        )
-
-        # Decoder
-        self.decoder = nn.Sequential(
-            nn.Linear(2, 16),
-            nn.Tanh(),
-            nn.Linear(16, 64),
-            nn.Tanh(),
-            nn.Linear(64, 128),
-            nn.Tanh(),
-            nn.Linear(128, 784),
-            nn.Sigmoid()
-        )
-
-    def forward(self, inputs):
-        codes = self.encoder(inputs)
-        decoded = self.decoder(codes)
-
-        return codes, decoded
-
-class AutoEncoder(nn.Module):
-    def __init__(self):
-        super(AutoEncoder, self).__init__()
-
-        # Encoder
-        self.encoder = nn.Sequential(
-            nn.Linear(784, 128),
-            nn.Tanh(),
-            nn.Linear(128, 64),
-            nn.Tanh(),
-            nn.Linear(64, 16),
-            nn.Tanh(),
-            nn.Linear(16, 2),
-        )
-
-        # Decoder
-        self.decoder = nn.Sequential(
-            nn.Linear(2, 16),
-            nn.Tanh(),
-            nn.Linear(16, 64),
-            nn.Tanh(),
-            nn.Linear(64, 128),
-            nn.Tanh(),
-            nn.Linear(128, 784),
-            nn.Sigmoid()
-        )
-
-    def forward(self, inputs):
-        codes = self.encoder(inputs)
-        decoded = self.decoder(codes)
-
-        return codes, decoded
-COPY
+        return res, decoded

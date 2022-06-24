@@ -6,14 +6,15 @@ from .kiba.kiba import Kiba
 handlers = {
     'kiba': Kiba
 }
-device = 'cpu'
 
 class MultiDataset(Dataset):
     def __init__(self, type = 'kiba', unit = 0.1):
+        self.device = 'cpu'
         self.handler = handlers[type]()
 
-        self.d_ecfps = torch.tensor(self.handler.d_ecfps, dtype=torch.float32, device=device)
-        self.p_embeddings = torch.tensor(self.handler.p_embeddings, dtype=torch.float32, device=device)
+        self.d_ecfps = torch.tensor(self.handler.d_ecfps, dtype=torch.float32, device=self.device)
+        self.p_embeddings = torch.tensor(self.handler.p_embeddings, dtype=torch.float32, device=self.device)
+        self.p_gos = torch.tensor(self.handler.p_gos, dtype=torch.float32, device=self.device)
         y = self.handler.y
 
         (dnum, pnum) = y.shape
@@ -29,13 +30,13 @@ class MultiDataset(Dataset):
         for v in targets:
             classes.append(int(v / unit))
         
-        self.indexes = torch.tensor(indexes, dtype=torch.long, device=device)
-        self.targets = torch.tensor(targets, dtype=torch.float32, device=device).view(-1, 1)
-        self.classes = torch.tensor(classes, dtype=torch.long, device=device)
+        self.indexes = torch.tensor(indexes, dtype=torch.long, device=self.device)
+        self.targets = torch.tensor(targets, dtype=torch.float32, device=self.device).view(-1, 1)
+        self.classes = torch.tensor(classes, dtype=torch.long, device=self.device)
 
     def __getitem__(self, index):
         dindex, pindex = self.indexes[index]
-        return self.d_ecfps[dindex], self.p_embeddings[pindex], \
+        return self.d_ecfps[dindex], self.p_embeddings[pindex], self.p_gos[pindex], \
             self.targets[index], self.classes[index]
 
     def __len__(self):
