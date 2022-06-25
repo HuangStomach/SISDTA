@@ -29,11 +29,14 @@ class FC(nn.Module):
         )
 
         self.fc = nn.Sequential(
-            nn.Linear(2048 + 128, 4096),
+            nn.Linear(2048 + 128, 2048),
+            nn.Dropout(0.1),
             nn.ReLU(True),
-            nn.Linear(4096, 512),
+            nn.Linear(2048, 512),
+            nn.Dropout(0.1),
             nn.ReLU(True),
             nn.Linear(512, 128),
+            nn.Dropout(0.1),
             nn.ReLU(True),
             nn.Linear(128, 1),
         )
@@ -41,6 +44,6 @@ class FC(nn.Module):
     def forward(self, x, gos):
         encoded = self.encoder(gos)
         decoded = self.decoder(encoded)
-        res = self.fc(torch.cat((x, encoded), dim = 1))
+        y = self.fc(torch.cat((x, encoded), dim = 1))
 
-        return res, decoded
+        return y, decoded

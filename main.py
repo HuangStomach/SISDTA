@@ -15,6 +15,7 @@ parser.add_argument('-e', '--epochs', default=1000, type=int, metavar='int')
 parser.add_argument('-d', '--dataset', default='kiba', type=str, metavar='string')
 parser.add_argument('-b', '--batch-size', default=256, type=int, metavar='int')
 parser.add_argument('-lr', '--learning-rate', default=0.001, type=float, metavar='float')
+parser.add_argument('-w', '--weight_decay', default=0.000002, type=float, metavar='float')
 parser.add_argument('-u', '--unit', default=0.1, type=float, metavar='float', help='unit of target')
 args = parser.parse_args()
 
@@ -26,14 +27,14 @@ testLoader = DataLoader(test, batch_size=args.batch_size, shuffle=False)
 supConLoss = SupConLoss()
 mseLoss = nn.MSELoss()
 model = FC().to(args.device)
-optimizer = torch.optim.Adam(model.parameters(), lr=args.learning_rate)
+optimizer = torch.optim.Adam(model.parameters(), lr=args.learning_rate, weight_decay=args.weight_decay)
 
 print('training...')
 for epoch in range(args.epochs):
     for ecfps, embeddings, gos, targets, classes in tqdm(trainLoader, leave=False):
-        x = torch.cat((ecfps, embeddings), dim=1)
+        x = torch.cat((ecfps, embeddings), dim = 1)
         y, decoded = model(x, gos)
-        trainLoss = mseLoss(targets, y) + 0.01 * supConLoss(x, classes) + 0.1 * mseLoss(gos, decoded)
+        trainLoss = mseLoss(targets, y) + 0.01 * supConLoss(torch.cat((x, gos), dim = 1), classes) + 0.01 * mseLoss(gos, decoded)
         # print('Epoch: {} batch_idx: {} loss: {:.6f}'.format(epoch, batch_idx, loss.item()))
 
         optimizer.zero_grad()
@@ -44,8 +45,8 @@ for epoch in range(args.epochs):
         preds = torch.Tensor(device=args.device)
         labels = torch.Tensor(device=args.device)
         for ecfps, embeddings, gos, targets in testLoader:
-            x = torch.cat((ecfps, embeddings), dim=1)
-            y, _ = model(x, gos)
+            x = torch.cat((ecfps, embeddings, gos), dim = 1)
+            y = model(x)
             preds = torch.cat((preds, y.flatten()), dim=0)
             labels = torch.cat((labels, targets.flatten()), dim=0)
 
