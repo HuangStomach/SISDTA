@@ -7,7 +7,6 @@ from urllib import request
 from transformers import BertModel, BertTokenizer
 from rdkit import Chem
 from rdkit.Chem import AllChem
-from sklearn.metrics import jaccard_score
 
 import gc
 import re

@@ -8,12 +8,13 @@ handlers = {
 }
 
 class MultiDataset(Dataset):
-    def __init__(self, type = 'kiba', train = True, unit = 0.1, device = 'cpu'):
+    def __init__(self, type = 'kiba', train = True, unit = 0.05, device = 'cpu'):
         print('initalizing {} {} dataset...'.format(type, 'train' if train else 'test'))
         self.device = device
         self.train = train
         self.handler = handlers[type](self.train)
 
+        self.d_vecs = torch.tensor(self.handler.d_vecs, dtype=torch.float32, device=self.device)
         self.d_ecfps = torch.tensor(self.handler.d_ecfps, dtype=torch.float32, device=self.device)
         self.p_embeddings = torch.tensor(self.handler.p_embeddings, dtype=torch.float32, device=self.device)
         self.p_gos = torch.tensor(self.handler.p_gos, dtype=torch.float32, device=self.device)
@@ -42,7 +43,7 @@ class MultiDataset(Dataset):
     def __getitem__(self, index):
         dindex, pindex = self.indexes[index]
         res = [
-            self.d_ecfps[dindex], self.p_embeddings[pindex], 
+            self.d_vecs[dindex], self.d_ecfps[dindex], self.p_embeddings[pindex], 
             self.p_gos[pindex], self.targets[index]
         ]
 
@@ -53,4 +54,4 @@ class MultiDataset(Dataset):
         return self.indexes.size(dim=0)
 
     def _check_exists(self):
-        pass
+        self.handler._check_exists()
