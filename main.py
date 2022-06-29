@@ -14,9 +14,9 @@ parser.add_argument('--device', default='cpu', type=str, metavar='string')
 parser.add_argument('-e', '--epochs', default=1000, type=int, metavar='int')
 parser.add_argument('-d', '--dataset', default='kiba', type=str, metavar='string')
 parser.add_argument('-b', '--batch-size', default=512, type=int, metavar='int')
-parser.add_argument('-lr', '--learning-rate', default=0.0005, type=float, metavar='float')
+parser.add_argument('-lr', '--learning-rate', default=0.001, type=float, metavar='float')
 parser.add_argument('-w', '--weight_decay', default=0.00002, type=float, metavar='float')
-parser.add_argument('-u', '--unit', default=0.1, type=float, metavar='float', help='unit of target')
+parser.add_argument('-u', '--unit', default=0.01, type=float, metavar='float', help='unit of target')
 args = parser.parse_args()
 
 train = MultiDataset(args.dataset, unit=args.unit, device=args.device)
@@ -26,8 +26,9 @@ testLoader = DataLoader(test, batch_size=args.batch_size, shuffle=False)
 
 supConLoss = SupConLoss()
 mseLoss = nn.MSELoss()
+huberLoss = nn.HuberLoss()
 model = FC().to(args.device)
-optimizer = torch.optim.Adam(model.parameters(), lr=args.learning_rate)
+optimizer = torch.optim.Adam(model.parameters(), lr=args.learning_rate, weight_decay=args.weight_decay)
 
 print('training...')
 for epoch in range(args.epochs):
@@ -35,7 +36,7 @@ for epoch in range(args.epochs):
         x = torch.cat((vecs, ecfps, embeddings), dim = 1)
         y, feature, decoded = model(x, gos)
         train_mse = mseLoss(targets, y).item()
-        trainLoss = mseLoss(targets, y) + supConLoss(feature, classes) + mseLoss(gos, decoded)
+        trainLoss = huberLoss(targets, y) + supConLoss(feature, classes) + huberLoss(gos, decoded)
         # print('Epoch: {} batch_idx: {} loss: {:.6f}'.format(epoch, batch_idx, loss.item()))
 
         optimizer.zero_grad()

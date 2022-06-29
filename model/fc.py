@@ -18,25 +18,27 @@ class FC(nn.Module):
         self.decoder = nn.Sequential(
             nn.Linear(512, 1024),
             nn.LeakyReLU(),
-            nn.Linear(1024, 2046),
+            nn.Linear(1024, 2048),
             nn.LeakyReLU(),
             nn.Linear(2048, 2812),
         )
 
         self.fc1 = nn.Sequential(
-            nn.Linear(300 + 2048 + 1024, 2048),
-            nn.LeakyReLU(),
+            nn.Linear(300 + 2048 + 512, 2048),
             nn.BatchNorm1d(2048),
-            nn.Linear(2048, 512),
+            nn.Dropout(0.15),
             nn.LeakyReLU(),
+            nn.Linear(2048, 512),
             nn.BatchNorm1d(512),
+            nn.Dropout(0.15),
+            nn.LeakyReLU(),
         )
 
         self.fc2 = nn.Sequential(
             nn.Linear(512, 128),
-            nn.Dropout(0.1),
             nn.LeakyReLU(),
             nn.BatchNorm1d(128),
+            nn.Dropout(0.15),
             nn.Linear(128, 1),
             nn.ReLU(True)
         )
