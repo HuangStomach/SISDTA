@@ -27,11 +27,11 @@ class MultiDataset(Dataset):
         self._check_exists()
         self.handler._load_data(train)
 
-        self.d_vecs = torch.tensor(self.handler.d_vecs, dtype=torch.float32, device=self.device)
+        self.d_vecs = self.handler.d_vecs
         self.d_ecfps = torch.tensor(self.handler.d_ecfps, dtype=torch.float32, device=self.device)
         self.d_intersect = self.handler.d_intersect
-        self.p_embeddings = torch.tensor(self.handler.p_embeddings, dtype=torch.float32, device=self.device)
-        self.p_gos = torch.tensor(self.handler.p_gos, dtype=torch.float32, device=self.device)
+        self.p_embeddings = self.handler.p_embeddings
+        self.p_gos = self.handler.p_gos
         y = self.handler.y
         drugs = self.handler.drugs
         proteins = self.handler.proteins
@@ -76,24 +76,26 @@ class MultiDataset(Dataset):
                 edge_weight.append(matrix[neighbor][0])
                 edge_index.append([j + 1, 0])
                 edge_weight.append(matrix[0][neighbor])
-                x.append(j)
+                x.append(neighbor)
 
             edge_index = torch.tensor(edge_index, dtype=torch.long, device=self.device)
             edge_weight = torch.tensor(edge_weight, dtype=torch.float32, device=self.device)
-
-        d_data.append((x, edge_index, edge_weight))
+            d_data.append((x, edge_index, edge_weight))
+        
         return d_data
 
     def get(self, index):
         dindex, pindex = self.indexes[index]
         x, edge_index, edge_weight = self.d_data[dindex]
+
         data = Data(
             x=self.d_ecfps[x], edge_index=edge_index.t().contiguous(), edge_weight=edge_weight, 
             y=self.targets[index],
-            d_vecs=self.d_vecs[dindex], d_ecfps=self.d_ecfps[dindex],
-            p_gos = self.p_gos[pindex], p_embeddings = self.p_embeddings[pindex]
+            d_vecs=torch.tensor(np.array([self.d_vecs[dindex]]), dtype=torch.float32, device=self.device), 
+            p_gos=torch.tensor(np.array([self.p_gos[pindex]]), dtype=torch.float32, device=self.device),
+            p_embeddings=torch.tensor(np.array([self.p_embeddings[pindex]]), dtype=torch.float32, device=self.device)
         )
-        
+
         if self.train: data.classes = self.classes[index]
         return data
 
