@@ -1,4 +1,3 @@
-
 import os
 import json
 import numpy as np
@@ -95,7 +94,7 @@ class MultiDataset(Dataset):
             d_vecs=self.d_vecs[dindex].view(1, -1), 
             p_gos=self.p_gos[pindex].view(1, -1),
             p_embeddings=self.p_embeddings[pindex].view(1, -1),
-        )
+        ).to(self.device)
 
         if self.train: data.classes = self.classes[index]
         return data
