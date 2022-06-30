@@ -1,9 +1,10 @@
+
 import os
 import json
 import numpy as np
 
 import torch
-from torch.utils.data import Dataset
+from torch_geometric.data import Dataset, Data
 import deepchem as dc
 from rdkit import Chem
 from rdkit.Chem import AllChem
@@ -15,7 +16,10 @@ handlers = {
 }
 
 class MultiDataset(Dataset):
-    def __init__(self, type = 'kiba', train = True, unit = 0.05, device = 'cpu'):
+    def __init__(self, type = 'kiba', train = True, unit = 0.05, device = 'cpu', 
+        transform=None, pre_transform=None):
+        super().__init__(None, transform, pre_transform) # 无需预处理与下载
+
         print('initalizing {} {} dataset...'.format(type, 'train' if train else 'test'))
         self.device = device
         self.train = train
@@ -56,35 +60,47 @@ class MultiDataset(Dataset):
             self.d_intersect[mask] = 0.0
             self.d_intersect[:, mask] = 0.0
 
+        self.d_data = self._graph_gen(self.d_ecfps, self.d_intersect)
         self.indexes = torch.tensor(indexes, dtype=torch.long, device=self.device)
         self.targets = torch.tensor(targets, dtype=torch.float32, device=self.device).view(-1, 1)
 
     def _graph_gen(self, feature, matrix):
+        d_data = []
         for i in range(len(feature)):
             edge_index = []
-            x = [feature[i]]
+            edge_weight = []
+            x = [i]
             neighbors = (-matrix[i]).argsort()[1:6]
-            for j in neighbors:
+            for j, neighbor in enumerate(neighbors):
                 edge_index.append([0, j + 1])
+                edge_weight.append(matrix[neighbor][0])
                 edge_index.append([j + 1, 0])
-                x.append(feature[j])
+                edge_weight.append(matrix[0][neighbor])
+                x.append(neighbor)
 
             edge_index = torch.tensor(edge_index, dtype=torch.long, device=self.device)
-            x = torch.tensor(x, dtype=torch.float32, device=self.device)
-            data = Data(x=x, edge_index=edge_index.t().contiguous())
-        pass
+            edge_weight = torch.tensor(edge_weight, dtype=torch.float32, device=self.device)
+            d_data.append((x, edge_index, edge_weight))
+        
+        return d_data
 
-    def __getitem__(self, index):
+    def get(self, index):
         dindex, pindex = self.indexes[index]
-        res = [
-            self.d_vecs[dindex], self.d_ecfps[dindex], self.p_embeddings[pindex], 
-            self.p_gos[pindex], self.targets[index]
-        ]
+        x, edge_index, edge_weight = self.d_data[dindex]
 
-        if self.train: res.append(self.classes[index])
-        return res
+        data = Data(
+            x=self.d_ecfps[x], edge_index=edge_index.t().contiguous(), edge_weight=edge_weight, 
+            y=self.targets[index],
+            d_ecfps=self.d_ecfps[dindex].view(1, -1),
+            d_vecs=self.d_vecs[dindex].view(1, -1), 
+            p_gos=self.p_gos[pindex].view(1, -1),
+            p_embeddings=self.p_embeddings[pindex].view(1, -1),
+        )
 
-    def __len__(self):
+        if self.train: data.classes = self.classes[index]
+        return data
+
+    def len(self):
         return self.indexes.size(dim=0)
 
     def _check_exists(self):
@@ -123,6 +139,7 @@ class MultiDataset(Dataset):
 
             for i in range(drug_count):
                 for j in range(drug_count):
+                    # i可以收集j中的信息的权重比率
                     inter = np.sum(np.bitwise_and(drug_ecfps[i], drug_ecfps[j]))
                     matrix[i][j] = round(1 - ((np.sum(drug_ecfps[j]) - inter) / np.sum(drug_ecfps[j])), 6)
             np.savetxt(self.handler.d_intersect_path, matrix, fmt='%s', delimiter=',')

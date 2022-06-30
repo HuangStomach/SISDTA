@@ -8,10 +8,10 @@ import argparse
 
 from model.fc import FC
 from model.supconloss import SupConLoss
-from data.pdataset import MultiDataset
+from data.dataset import MultiDataset
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--device', default='cuda:0', type=str, metavar='string')
+parser.add_argument('--device', default='cpu', type=str, metavar='string')
 parser.add_argument('-e', '--epochs', default=1000, type=int, metavar='int')
 parser.add_argument('-d', '--dataset', default='kiba', type=str, metavar='string')
 parser.add_argument('-b', '--batch-size', default=64, type=int, metavar='int')
