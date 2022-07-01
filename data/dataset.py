@@ -4,9 +4,9 @@ import numpy as np
 
 import torch
 from torch_geometric.data import Dataset, Data
-import deepchem as dc
-from rdkit import Chem
-from rdkit.Chem import AllChem
+# import deepchem as dc
+# from rdkit import Chem
+# from rdkit.Chem import AllChem
 
 from .kiba.kiba import Kiba
 
@@ -72,9 +72,9 @@ class MultiDataset(Dataset):
             neighbors = (-matrix[i]).argsort()[1:6]
             for j, neighbor in enumerate(neighbors):
                 edge_index.append([0, j + 1])
-                edge_weight.append(matrix[neighbor][0])
+                edge_weight.append(matrix[neighbor][i])
                 edge_index.append([j + 1, 0])
-                edge_weight.append(matrix[0][neighbor])
+                edge_weight.append(matrix[i][neighbor])
                 x.append(neighbor)
 
             edge_index = torch.tensor(edge_index, dtype=torch.long, device=self.device)
@@ -103,42 +103,43 @@ class MultiDataset(Dataset):
         return self.indexes.size(dim=0)
 
     def _check_exists(self):
-        print('checking data file exists...')
-        if not os.path.exists(self.handler.d_ecfps_path):
-            print('generating drug ecfps...')
-            radius = 4
-            seqs = []
-            with open(self.handler.ligands_path) as fp:
-                drugs = json.load(fp)
+        pass
+        # print('checking data file exists...')
+        # if not os.path.exists(self.handler.d_ecfps_path):
+        #     print('generating drug ecfps...')
+        #     radius = 4
+        #     seqs = []
+        #     with open(self.handler.ligands_path) as fp:
+        #         drugs = json.load(fp)
 
-                for drug in drugs:
-                    try:
-                        smiles = drugs[drug]
-                        mol = Chem.MolFromSmiles(smiles)
-                        seqs.append(AllChem.GetMorganFingerprintAsBitVect(mol, radius, nBits=1024).ToList())
-                    except Exception as e:
-                        print(drug)
-            np.savetxt(self.handler.d_ecfps_path, seqs, fmt='%d', delimiter=',')
+        #         for drug in drugs:
+        #             try:
+        #                 smiles = drugs[drug]
+        #                 mol = Chem.MolFromSmiles(smiles)
+        #                 seqs.append(AllChem.GetMorganFingerprintAsBitVect(mol, radius, nBits=1024).ToList())
+        #             except Exception as e:
+        #                 print(drug)
+        #     np.savetxt(self.handler.d_ecfps_path, seqs, fmt='%d', delimiter=',')
 
-        if not os.path.exists(self.handler.d_vecs_path):
-            print('generating drug vectors...')
-            with open(self.handler.ligands_path) as fp:
-                drugs = json.load(fp)
-            smiles = [drugs[drug] for drug in drugs]
-            featurizer = dc.feat.Mol2VecFingerprint()
-            features = featurizer.featurize(smiles)
+        # if not os.path.exists(self.handler.d_vecs_path):
+        #     print('generating drug vectors...')
+        #     with open(self.handler.ligands_path) as fp:
+        #         drugs = json.load(fp)
+        #     smiles = [drugs[drug] for drug in drugs]
+        #     featurizer = dc.feat.Mol2VecFingerprint()
+        #     features = featurizer.featurize(smiles)
 
-            np.savetxt(self.handler.d_vecs_path, features, fmt='%s', delimiter=',')
+        #     np.savetxt(self.handler.d_vecs_path, features, fmt='%s', delimiter=',')
         
-        if not os.path.exists(self.handler.d_intersect_path):
-            print('generating drug intersect...')
-            drug_ecfps = np.loadtxt(self.handler.d_ecfps_path, delimiter=',', dtype=int, comments=None)
-            drug_count = drug_ecfps.shape[0]
-            matrix = np.zeros((drug_count, drug_count))
+        # if not os.path.exists(self.handler.d_intersect_path):
+        #     print('generating drug intersect...')
+        #     drug_ecfps = np.loadtxt(self.handler.d_ecfps_path, delimiter=',', dtype=int, comments=None)
+        #     drug_count = drug_ecfps.shape[0]
+        #     matrix = np.zeros((drug_count, drug_count))
 
-            for i in range(drug_count):
-                for j in range(drug_count):
-                    # i可以收集j中的信息的权重比率
-                    inter = np.sum(np.bitwise_and(drug_ecfps[i], drug_ecfps[j]))
-                    matrix[i][j] = round(1 - ((np.sum(drug_ecfps[j]) - inter) / np.sum(drug_ecfps[j])), 6)
-            np.savetxt(self.handler.d_intersect_path, matrix, fmt='%s', delimiter=',')
+        #     for i in range(drug_count):
+        #         for j in range(drug_count):
+        #             # i可以收集j中的信息的权重比率
+        #             inter = np.sum(np.bitwise_and(drug_ecfps[i], drug_ecfps[j]))
+        #             matrix[i][j] = round(1 - ((np.sum(drug_ecfps[j]) - inter) / np.sum(drug_ecfps[j])), 6)
+        #     np.savetxt(self.handler.d_intersect_path, matrix, fmt='%s', delimiter=',')
