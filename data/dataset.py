@@ -3,7 +3,7 @@ import json
 import numpy as np
 
 import torch
-from torch_geometric.data import Dataset, Data
+from torch.utils.data import Dataset
 # import deepchem as dc
 # from rdkit import Chem
 # from rdkit.Chem import AllChem
@@ -15,10 +15,8 @@ handlers = {
 }
 
 class MultiDataset(Dataset):
-    def __init__(self, type = 'kiba', train = True, unit = 0.05, device = 'cpu', 
-        transform=None, pre_transform=None):
-        super().__init__(None, transform, pre_transform) # 无需预处理与下载
-
+    def __init__(self, type = 'kiba', train = True, unit = 0.05, device = 'cpu'):
+        # super().__init__(None, transform, pre_transform) # 无需预处理与下载
         print('initalizing {} {} dataset...'.format(type, 'train' if train else 'test'))
         self.device = device
         self.train = train
@@ -45,7 +43,6 @@ class MultiDataset(Dataset):
             indexes.append([i, j])
             targets.append(y[i][j])
 
-
         if self.train:
             # 对比学习所需的分类
             for v in targets:
@@ -53,53 +50,44 @@ class MultiDataset(Dataset):
             self.classes = torch.tensor(classes, dtype=torch.long, device=self.device)
             
             # 根据训练集对d_intersect矩阵进行mask
-            train_d = np.unique(drugs)
+            train_drugs = np.unique(drugs)
             mask = np.ones(self.d_intersect.shape[0], bool)
-            mask[train_d] = False
+            mask[train_drugs] = False
             self.d_intersect[mask] = 0.0
             self.d_intersect[:, mask] = 0.0
 
-        self.d_data = self._graph_gen(self.d_ecfps, self.d_intersect)
+        self._graph_gen(self.d_ecfps, self.d_intersect)
         self.indexes = torch.tensor(indexes, dtype=torch.long, device=self.device)
         self.targets = torch.tensor(targets, dtype=torch.float32, device=self.device).view(-1, 1)
 
     def _graph_gen(self, feature, matrix):
-        d_data = []
-        for i in range(len(feature)):
-            edge_index = []
-            edge_weight = []
-            x = [i]
-            neighbors = (-matrix[i]).argsort()[1:6]
-            for j, neighbor in enumerate(neighbors):
-                edge_index.append([0, j + 1])
-                edge_weight.append(matrix[neighbor][i])
-                edge_index.append([j + 1, 0])
-                edge_weight.append(matrix[i][neighbor])
-                x.append(neighbor)
-
-            edge_index = torch.tensor(edge_index, dtype=torch.long, device=self.device)
-            edge_weight = torch.tensor(edge_weight, dtype=torch.float32, device=self.device)
-            d_data.append((x, edge_index, edge_weight))
+        edge_index = []
+        edge_weight = []
         
-        return d_data
+        for i in range(len(feature)):
+            neighbors = (-matrix[i]).argsort()[1:6]
+            for neighbor in neighbors:
+                edge_index.append([i, neighbor])
+                edge_weight.append(matrix[neighbor][i])
+                edge_index.append([neighbor, i])
+                edge_weight.append(matrix[i][neighbor])
 
-    def get(self, index):
+        self.edge_index = torch.tensor(edge_index, dtype=torch.long, device=self.device).t().contiguous()
+        self.edge_weight = torch.tensor(edge_weight, dtype=torch.float32, device=self.device)
+
+    def __getitem__(self, index):
         dindex, pindex = self.indexes[index]
-        x, edge_index, edge_weight = self.d_data[dindex]
+        
+        res = [
+            dindex,
+            self.d_vecs[dindex], self.d_ecfps[dindex], self.p_embeddings[pindex], 
+            self.p_gos[pindex], self.targets[index]
+        ]
 
-        data = Data(
-            x=self.d_ecfps[x], edge_index=edge_index.t().contiguous(), edge_weight=edge_weight, 
-            y=self.targets[index],
-            d_ecfps=self.d_ecfps[dindex].view(1, -1),
-            d_vecs=self.d_vecs[dindex].view(1, -1), 
-            p_gos=self.p_gos[pindex].view(1, -1),
-            p_embeddings=self.p_embeddings[pindex].view(1, -1),
-        ).to(self.device)
+        if self.train: res.append(self.classes[index])
+        return res
 
-        if self.train: data.classes = self.classes[index]
-        return data
-
-    def len(self):
+    def __len__(self):
         return self.indexes.size(dim=0)
 
     def _check_exists(self):
