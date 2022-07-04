@@ -47,7 +47,7 @@ if __name__=='__main__':
             preds = torch.tensor([], device=args.device)
             labels = torch.tensor([], device=args.device)
             for d_index, p_index, d_vecs, p_embeddings, y in testLoader:
-                y_bar, _, _ = model(d_index, p_index, d_vecs, p_embeddings, y, test)
+                y_bar, _ = model(d_index, p_index, d_vecs, p_embeddings, y, test)
                 preds = torch.cat((preds, y_bar.flatten()), dim=0)
                 labels = torch.cat((labels, y.flatten()), dim=0)
 
