@@ -1,5 +1,6 @@
 import os
 import json
+import pandas as pd
 import numpy as np
 
 import torch
@@ -29,6 +30,7 @@ class MultiDataset(Dataset):
         self.d_intersect = self.handler.d_intersect
         self.p_embeddings = torch.tensor(self.handler.p_embeddings, dtype=torch.float32, device=self.device)
         self.p_gos = torch.tensor(self.handler.p_gos, dtype=torch.float32, device=self.device)
+        self.p_intersect = self.handler.p_intersect
         y = self.handler.y
         drugs = self.handler.drugs
         proteins = self.handler.proteins
@@ -56,7 +58,15 @@ class MultiDataset(Dataset):
             self.d_intersect[mask] = 0.0
             self.d_intersect[:, mask] = 0.0
 
-        self._graph_gen(self.d_ecfps, self.d_intersect)
+            # 根据训练集对p_intersect矩阵进行mask
+            train_proteins = np.unique(proteins)
+            mask = np.ones(self.p_intersect.shape[0], bool)
+            mask[train_proteins] = False
+            self.p_intersect[mask] = 0.0
+            self.p_intersect[:, mask] = 0.0
+
+        self.d_edge_index, self.d_edge_weight = self._graph_gen(self.d_ecfps, self.d_intersect)
+        self.p_edge_index, self.p_edge_weight = self._graph_gen(self.p_gos, self.p_intersect)
         self.indexes = torch.tensor(indexes, dtype=torch.long, device=self.device)
         self.targets = torch.tensor(targets, dtype=torch.float32, device=self.device).view(-1, 1)
 
@@ -72,16 +82,15 @@ class MultiDataset(Dataset):
                 edge_index.append([neighbor, i])
                 edge_weight.append(matrix[i][neighbor])
 
-        self.edge_index = torch.tensor(edge_index, dtype=torch.long, device=self.device).t().contiguous()
-        self.edge_weight = torch.tensor(edge_weight, dtype=torch.float32, device=self.device)
+        return torch.tensor(edge_index, dtype=torch.long, device=self.device).t().contiguous(), \
+            torch.tensor(edge_weight, dtype=torch.float32, device=self.device)
 
     def __getitem__(self, index):
         dindex, pindex = self.indexes[index]
         
         res = [
-            dindex,
-            self.d_vecs[dindex], self.d_ecfps[dindex], self.p_embeddings[pindex], 
-            self.p_gos[pindex], self.targets[index]
+            dindex, pindex,
+            self.d_vecs[dindex], self.p_embeddings[pindex], self.targets[index]
         ]
 
         if self.train: res.append(self.classes[index])
@@ -92,42 +101,55 @@ class MultiDataset(Dataset):
 
     def _check_exists(self):
         pass
-        # print('checking data file exists...')
-        # if not os.path.exists(self.handler.d_ecfps_path):
-        #     print('generating drug ecfps...')
-        #     radius = 4
-        #     seqs = []
-        #     with open(self.handler.ligands_path) as fp:
-        #         drugs = json.load(fp)
+        print('checking data file exists...')
+        if not os.path.exists(self.handler.d_ecfps_path):
+            print('generating drug ecfps...')
+            radius = 4
+            seqs = []
+            with open(self.handler.ligands_path) as fp:
+                drugs = json.load(fp)
 
-        #         for drug in drugs:
-        #             try:
-        #                 smiles = drugs[drug]
-        #                 mol = Chem.MolFromSmiles(smiles)
-        #                 seqs.append(AllChem.GetMorganFingerprintAsBitVect(mol, radius, nBits=1024).ToList())
-        #             except Exception as e:
-        #                 print(drug)
-        #     np.savetxt(self.handler.d_ecfps_path, seqs, fmt='%d', delimiter=',')
+                for drug in drugs:
+                    try:
+                        smiles = drugs[drug]
+                        mol = Chem.MolFromSmiles(smiles)
+                        seqs.append(AllChem.GetMorganFingerprintAsBitVect(mol, radius, nBits=1024).ToList())
+                    except Exception as e:
+                        print(drug)
+            np.savetxt(self.handler.d_ecfps_path, seqs, fmt='%d', delimiter=',')
 
-        # if not os.path.exists(self.handler.d_vecs_path):
-        #     print('generating drug vectors...')
-        #     with open(self.handler.ligands_path) as fp:
-        #         drugs = json.load(fp)
-        #     smiles = [drugs[drug] for drug in drugs]
-        #     featurizer = dc.feat.Mol2VecFingerprint()
-        #     features = featurizer.featurize(smiles)
+        if not os.path.exists(self.handler.d_vecs_path):
+            print('generating drug vectors...')
+            with open(self.handler.ligands_path) as fp:
+                drugs = json.load(fp)
+            smiles = [drugs[drug] for drug in drugs]
+            featurizer = dc.feat.Mol2VecFingerprint()
+            features = featurizer.featurize(smiles)
 
-        #     np.savetxt(self.handler.d_vecs_path, features, fmt='%s', delimiter=',')
+            np.savetxt(self.handler.d_vecs_path, features, fmt='%s', delimiter=',')
         
-        # if not os.path.exists(self.handler.d_intersect_path):
-        #     print('generating drug intersect...')
-        #     drug_ecfps = np.loadtxt(self.handler.d_ecfps_path, delimiter=',', dtype=int, comments=None)
-        #     drug_count = drug_ecfps.shape[0]
-        #     matrix = np.zeros((drug_count, drug_count))
+        if not os.path.exists(self.handler.d_intersect_path):
+            print('generating drug intersect...')
+            drug_ecfps = np.loadtxt(self.handler.d_ecfps_path, delimiter=',', dtype=int, comments=None)
+            drug_count = drug_ecfps.shape[0]
+            matrix = np.zeros((drug_count, drug_count))
 
-        #     for i in range(drug_count):
-        #         for j in range(drug_count):
-        #             # i可以收集j中的信息的权重比率
-        #             inter = np.sum(np.bitwise_and(drug_ecfps[i], drug_ecfps[j]))
-        #             matrix[i][j] = round(1 - ((np.sum(drug_ecfps[j]) - inter) / np.sum(drug_ecfps[j])), 6)
-        #     np.savetxt(self.handler.d_intersect_path, matrix, fmt='%s', delimiter=',')
+            for i in range(drug_count):
+                for j in range(drug_count):
+                    # i可以收集j中的信息的权重比率
+                    inter = np.sum(np.bitwise_and(drug_ecfps[i], drug_ecfps[j]))
+                    matrix[i][j] = round(1 - ((np.sum(drug_ecfps[j]) - inter) / np.sum(drug_ecfps[j])), 6)
+            np.savetxt(self.handler.d_intersect_path, matrix, fmt='%s', delimiter=',')
+        
+        if not os.path.exists(self.handler.p_intersect_path):
+            print('generating protein intersect...')
+            p_gos = pd.read_csv(self.handler.p_gos_path, delimiter=',', header=0, index_col=0).to_numpy(int)
+            protein_count = p_gos.shape[0]
+            matrix = np.zeros((protein_count, protein_count))
+
+            for i in range(protein_count):
+                for j in range(protein_count):
+                    # i可以收集j中的信息的权重比率
+                    inter = np.sum(np.bitwise_and(p_gos[i], p_gos[j]))
+                    matrix[i][j] = round(1 - ((np.sum(p_gos[j]) - inter) / np.sum(p_gos[j])), 6)
+            np.savetxt(self.handler.p_intersect_path, matrix, fmt='%s', delimiter=',')
