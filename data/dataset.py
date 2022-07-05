@@ -75,10 +75,12 @@ class MultiDataset(Dataset):
         edge_weight = []
         
         for i in range(len(feature)):
-            neighbors = (-matrix[i]).argsort()[1:6]
-            for neighbor in neighbors:
-                edge_index.append([i, neighbor])
-                edge_weight.append(matrix[neighbor][i])
+            neighbors = (-matrix[i]).argsort()[1:]
+            for k, neighbor in enumerate(neighbors):
+                if k > 4 and matrix[i][neighbor] < 0.5: break
+                # 暂时注释掉反向边
+                # edge_index.append([i, neighbor])
+                # edge_weight.append(matrix[neighbor][i])
                 edge_index.append([neighbor, i])
                 edge_weight.append(matrix[i][neighbor])
 

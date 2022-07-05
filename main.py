@@ -13,10 +13,10 @@ from data.dataset import MultiDataset
 if __name__=='__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--device', default='cpu', type=str, metavar='string')
-    parser.add_argument('-e', '--epochs', default=1500, type=int, metavar='int')
+    parser.add_argument('-e', '--epochs', default=1000, type=int, metavar='int')
     parser.add_argument('-d', '--dataset', default='kiba', type=str, metavar='string')
     parser.add_argument('-b', '--batch-size', default=512, type=int, metavar='int')
-    parser.add_argument('-lr', '--learning-rate', default=0.0005, type=float, metavar='float')
+    parser.add_argument('-lr', '--learning-rate', default=0.0007, type=float, metavar='float')
     parser.add_argument('-w', '--weight_decay', default=0.0, type=float, metavar='float')
     parser.add_argument('-u', '--unit', default=0.01, type=float, metavar='float', help='unit of target')
     args = parser.parse_args()
