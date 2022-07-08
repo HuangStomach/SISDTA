@@ -7,37 +7,34 @@ class FC(nn.Module):
         super(FC, self).__init__()
 
         self.encoder = nn.Sequential(
-            nn.Linear(300 + 1024 + 1024 + 1024, 1024),
-            nn.BatchNorm1d(1024),
+            nn.Linear(300 + 1024 + 1024 + 1024, 2048),
+            nn.BatchNorm1d(2048),
             nn.Dropout(0.2),
             nn.LeakyReLU(),
-            nn.Linear(1024, 512),
-            nn.BatchNorm1d(512),
+            nn.Linear(2048, 1024),
+            nn.BatchNorm1d(1024),
             nn.Dropout(0.2),
             nn.LeakyReLU(),
         )
 
         self.output = nn.Sequential(
-            nn.Linear(512, 128),
-            nn.RReLU(inplace=True),
-            # nn.LeakyReLU(),
-            nn.BatchNorm1d(128),
+            nn.Linear(1024, 256),
+            nn.LeakyReLU(),
+            nn.BatchNorm1d(256),
             nn.Dropout(0.2),
-            nn.Linear(128, 1),
+            nn.Linear(256, 1),
         )
 
         self.d_gcn = Sequential('x, edge_index, edge_weight', [
-            (GCNConv(1024, 1024, improved=True), 'x, edge_index, edge_weight -> x1'),
-            nn.Dropout(0.2),
+            (GCNConv(1024, 1024), 'x, edge_index, edge_weight -> x1'),
+            nn.Dropout(0.4),
             nn.LeakyReLU(),
-            # nn.RReLU(inplace=True),
         ])
 
         self.p_gcn = Sequential('x, edge_index, edge_weight', [
-            (GCNConv(2812, 1024, improved=True), 'x, edge_index, edge_weight -> x1'),
-            nn.Dropout(0.2),
+            (GCNConv(2812, 1024), 'x, edge_index, edge_weight -> x1'),
+            nn.Dropout(0.4),
             nn.LeakyReLU(),
-            # nn.RReLU(inplace=True),
         ])
 
     def forward(self, d_index, p_index, d_vecs, p_embeddings, y, dataset):
