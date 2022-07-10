@@ -27,13 +27,13 @@ class FC(nn.Module):
 
         self.d_gcn = Sequential('x, edge_index, edge_weight', [
             (GCNConv(1024, 1024), 'x, edge_index, edge_weight -> x1'),
-            nn.Dropout(0.4),
+            nn.Dropout(0.2),
             nn.LeakyReLU(),
         ])
 
         self.p_gcn = Sequential('x, edge_index, edge_weight', [
             (GCNConv(2812, 1024), 'x, edge_index, edge_weight -> x1'),
-            nn.Dropout(0.4),
+            nn.Dropout(0.2),
             nn.LeakyReLU(),
         ])
 

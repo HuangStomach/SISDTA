@@ -17,6 +17,7 @@ if __name__=='__main__':
     parser.add_argument('-d', '--dataset', default='kiba', type=str, metavar='string')
     parser.add_argument('-b', '--batch-size', default=512, type=int, metavar='int')
     parser.add_argument('-lr', '--learning-rate', default=0.001, type=float, metavar='float')
+    parser.add_argument('-l', '--lambda', default=0.0001, type=float, metavar='float')
     parser.add_argument('-w', '--weight_decay', default=0.0, type=float, metavar='float')
     parser.add_argument('-u', '--unit', default=0.01, type=float, metavar='float', help='unit of target')
     args = parser.parse_args()
@@ -38,7 +39,7 @@ if __name__=='__main__':
             y_bar, feature = model(d_index, p_index, d_vecs, p_embeddings, y, train)
 
             train_mse = mseLoss(y, y_bar)
-            trainLoss = train_mse + 0.1 * supConLoss(feature, classes)
+            trainLoss = train_mse + args.lambda * supConLoss(feature, classes)
             trainLoss.backward()
 
             optimizer.step()
