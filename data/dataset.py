@@ -50,6 +50,13 @@ class MultiDataset(Dataset):
             for v in targets:
                 classes.append(int(v / unit))
             self.classes = torch.tensor(classes, dtype=torch.long, device=self.device)
+
+            # 计算出每个类别出现次数, 并根据频率分配权重
+            alpha = np.array(classes, dtype=float)
+            uniq_array, count_array = np.unique(alpha, axis=0, return_counts=True)
+            for i, _ in enumerate(uniq_array):
+                alpha[np.where(alpha == uniq_array[i])] = 1 / count_array[i]
+            self.alpha = torch.tensor(alpha, dtype=torch.float32, device=self.device)
             
             # 根据训练集对d_intersect矩阵进行mask
             train_drugs = np.unique(drugs)
