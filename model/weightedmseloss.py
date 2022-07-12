@@ -1,6 +1,9 @@
+import torch
+import torch.nn as nn
+
 class WeightedMSELoss(nn.Module):
     def __init__(self, alpha):
-        super(WeightMSELoss, self).__init__()
+        super(WeightedMSELoss, self).__init__()
         self.alpha = alpha
 
     def forward(self, input, target):

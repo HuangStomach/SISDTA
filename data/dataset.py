@@ -55,7 +55,7 @@ class MultiDataset(Dataset):
             alpha = np.array(classes, dtype=float)
             uniq_array, count_array = np.unique(alpha, axis=0, return_counts=True)
             for i, _ in enumerate(uniq_array):
-                alpha[np.where(alpha == uniq_array[i])] = 1 / count_array[i]
+                alpha[np.where(alpha == uniq_array[i])] = count_array.max() / count_array[i]
             self.alpha = torch.tensor(alpha, dtype=torch.float32, device=self.device)
             
             # 根据训练集对d_intersect矩阵进行mask
