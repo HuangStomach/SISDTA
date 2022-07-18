@@ -49,15 +49,23 @@ class MultiDataset(Dataset):
             # 对比学习所需的分类
             for v in targets:
                 classes.append(int(v / unit))
+
+            # 重采样
+            # np_classes = np.array(classes, dtype=int)
+            # np_indexes = np.array(indexes, dtype=int)
+            # np_targets = np.array(targets, dtype=float)
+            # supplement = [[0,0]]
+            # uniq_array, count_array = np.unique(np_classes, axis=0, return_counts=True)
+            # for i, _ in enumerate(uniq_array):
+            #     times = min(5, count_array.max() // count_array[i])
+            #     for _ in range(times):
+            #         indices = np.where(np_classes == uniq_array[i])
+            #         indexes.extend(np_indexes[indices])
+            #         targets.extend(np_targets[indices])
+            #         classes.extend(np_classes[indices])
+
             self.classes = torch.tensor(classes, dtype=torch.long, device=self.device)
 
-            # 计算出每个类别出现次数, 并根据频率分配权重
-            alpha = np.array(classes, dtype=float)
-            uniq_array, count_array = np.unique(alpha, axis=0, return_counts=True)
-            for i, _ in enumerate(uniq_array):
-                alpha[np.where(alpha == uniq_array[i])] = count_array.max() / count_array[i]
-            self.alpha = torch.tensor(alpha, dtype=torch.float32, device=self.device)
-            
             # 根据训练集对d_intersect矩阵进行mask
             train_drugs = np.unique(drugs)
             mask = np.ones(self.d_intersect.shape[0], bool)

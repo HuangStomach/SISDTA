@@ -18,9 +18,10 @@ if __name__=='__main__':
     parser.add_argument('-d', '--dataset', default='kiba', type=str, metavar='string')
     parser.add_argument('-b', '--batch-size', default=512, type=int, metavar='int')
     parser.add_argument('-lr', '--learning-rate', default=0.001, type=float, metavar='float')
-    parser.add_argument('-l', '--lambda_', default=0.00001, type=float, metavar='float')
+    parser.add_argument('-l1', '--lambda_1', default=0.00001, type=float, metavar='float')
+    parser.add_argument('-l2', '--lambda_2', default=0.00001, type=float, metavar='float')
     parser.add_argument('-w', '--weight_decay', default=0.0, type=float, metavar='float')
-    parser.add_argument('-u', '--unit', default=0.01, type=float, metavar='float', help='unit of target')
+    parser.add_argument('-u', '--unit', default=0.1, type=float, metavar='float', help='unit of target')
     args = parser.parse_args()
 
     train = MultiDataset(args.dataset, unit=args.unit, device=args.device)
@@ -30,6 +31,7 @@ if __name__=='__main__':
 
     supConLoss = SupConLoss()
     mseLoss = nn.MSELoss()
+    aeMseLoss = nn.MSELoss()
     # mseLoss = WeightedMSELoss(train.alpha)
     model = FC().to(args.device)
     optimizer = torch.optim.Adam(model.parameters(), lr=args.learning_rate, weight_decay=args.weight_decay)
@@ -38,10 +40,12 @@ if __name__=='__main__':
     for epoch in range(args.epochs):
         for d_index, p_index, d_vecs, p_embeddings, y, classes in tqdm(trainLoader, leave=False):
             optimizer.zero_grad()
-            y_bar, feature = model(d_index, p_index, d_vecs, p_embeddings, y, train)
+            y_bar, encoded, decoded, feature = model(d_index, p_index, d_vecs, p_embeddings, y, train)
 
             train_mse = mseLoss(y, y_bar)
-            trainLoss = train_mse + args.lambda_ * supConLoss(feature, classes)
+            trainLoss = train_mse + \
+                args.lambda_1 * supConLoss(encoded, classes) + \
+                args.lambda_2 * aeMseLoss(decoded, feature)
             trainLoss.backward()
 
             optimizer.step()
@@ -50,7 +54,7 @@ if __name__=='__main__':
             preds = torch.tensor([], device=args.device)
             labels = torch.tensor([], device=args.device)
             for d_index, p_index, d_vecs, p_embeddings, y in testLoader:
-                y_bar, _ = model(d_index, p_index, d_vecs, p_embeddings, y, test)
+                y_bar, _, _, _ = model(d_index, p_index, d_vecs, p_embeddings, y, test)
                 preds = torch.cat((preds, y_bar.flatten()), dim=0)
                 labels = torch.cat((labels, y.flatten()), dim=0)
 
