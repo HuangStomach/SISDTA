@@ -8,24 +8,20 @@ class FC(nn.Module):
 
         self.encoder = nn.Sequential(
             nn.Linear(300 + 1024 + 1024 + 1024, 1024),
-            # nn.BatchNorm1d(1024),
-            nn.Dropout(0.2),
-            nn.LeakyReLU(),
+            nn.BatchNorm1d(1024),
+            nn.ReLU(),
             nn.Linear(1024, 256),
-            # nn.BatchNorm1d(256),
-            nn.Dropout(0.2),
-            nn.LeakyReLU(),
+            nn.BatchNorm1d(256),
+            nn.ReLU(),
         )
 
         self.decoder = nn.Sequential(
             nn.Linear(256, 1024),
-            # nn.BatchNorm1d(1024),
-            nn.Dropout(0.2),
-            nn.LeakyReLU(),
+            nn.BatchNorm1d(1024),
+            nn.ReLU(),
             nn.Linear(1024, 300 + 1024 + 1024 + 1024),
-            # nn.BatchNorm1d(1024),
-            nn.Dropout(0.2),
-            nn.LeakyReLU(),
+            nn.BatchNorm1d(3372),
+            nn.ReLU(),
         )
 
         self.output = nn.Sequential(
@@ -38,13 +34,13 @@ class FC(nn.Module):
 
         self.d_gcn = Sequential('x, edge_index, edge_weight', [
             (GCNConv(1024, 1024), 'x, edge_index, edge_weight -> x1'),
-            nn.Dropout(0.2),
+            nn.Dropout(0.4),
             nn.LeakyReLU(),
         ])
 
         self.p_gcn = Sequential('x, edge_index, edge_weight', [
             (GCNConv(2812, 1024), 'x, edge_index, edge_weight -> x1'),
-            nn.Dropout(0.2),
+            nn.Dropout(0.4),
             nn.LeakyReLU(),
         ])
 
