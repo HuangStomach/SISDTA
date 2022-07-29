@@ -10,9 +10,11 @@ from torch.utils.data import Dataset
 # from rdkit.Chem import AllChem
 
 from .kiba.kiba import Kiba
+from .davis.davis import Davis
 
 handlers = {
-    'kiba': Kiba
+    'kiba': Kiba,
+    'davis': Davis,
 }
 
 class MultiDataset(Dataset):
@@ -22,6 +24,7 @@ class MultiDataset(Dataset):
         self.device = device
         self.train = train
         self.handler = handlers[type](self.train)
+
         self._check_exists()
         self.handler._load_data(train)
 
@@ -30,6 +33,7 @@ class MultiDataset(Dataset):
         self.d_intersect = self.handler.d_intersect
         self.p_embeddings = torch.tensor(self.handler.p_embeddings, dtype=torch.float32, device=self.device)
         self.p_gos = torch.tensor(self.handler.p_gos, dtype=torch.float32, device=self.device)
+        self.p_gos_dim = self.p_gos.size()[1]
         self.p_intersect = self.handler.p_intersect
         y = self.handler.y
         drugs = self.handler.drugs
