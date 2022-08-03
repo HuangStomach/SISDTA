@@ -34,6 +34,7 @@ class MultiDataset(Dataset):
         self.p_embeddings = torch.tensor(self.handler.p_embeddings, dtype=torch.float32, device=self.device)
         self.p_gos = torch.tensor(self.handler.p_gos, dtype=torch.float32, device=self.device)
         self.p_gos_dim = self.p_gos.size()[1]
+        self.dropout = self.handler.dropout
         self.p_intersect = self.handler.p_intersect
         y = self.handler.y
         drugs = self.handler.drugs

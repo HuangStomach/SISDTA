@@ -3,7 +3,7 @@ import torch.nn as nn
 from torch_geometric.nn import Sequential, GCNConv
 
 class FC(nn.Module):
-    def __init__(self, p_gos_dim):
+    def __init__(self, p_gos_dim, dropout):
         super(FC, self).__init__()
 
         self.encoder = nn.Sequential(
@@ -27,17 +27,20 @@ class FC(nn.Module):
         self.output = nn.Sequential(
             nn.Linear(256, 64),
             nn.BatchNorm1d(64),
+            nn.Dropout(dropout),
             nn.LeakyReLU(),
             nn.Linear(64, 1),
         )
 
         self.d_gcn = Sequential('x, edge_index, edge_weight', [
             (GCNConv(1024, 1024), 'x, edge_index, edge_weight -> x1'),
+            nn.Dropout(dropout),
             nn.LeakyReLU(),
         ])
 
         self.p_gcn = Sequential('x, edge_index, edge_weight', [
             (GCNConv(p_gos_dim, 1024), 'x, edge_index, edge_weight -> x1'),
+            nn.Dropout(dropout),
             nn.LeakyReLU(),
         ])
 

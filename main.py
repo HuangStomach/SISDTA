@@ -33,7 +33,7 @@ if __name__=='__main__':
     mseLoss = nn.MSELoss()
     aeMseLoss = nn.MSELoss()
     # mseLoss = WeightedMSELoss(train.alpha)
-    model = FC(train.p_gos_dim).to(args.device)
+    model = FC(train.p_gos_dim, train.dropout).to(args.device)
     optimizer = torch.optim.Adam(model.parameters(), lr=args.learning_rate, weight_decay=args.weight_decay)
 
     print('training...')

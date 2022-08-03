@@ -4,6 +4,7 @@ import json
 
 class Davis:
     def __init__(self, train = True):
+        self.dropout = 0.2
         self.ligands_path = './data/davis/ligands_can.json'
         self.d_ecfps_path = './data/davis/drug_ecfps.csv'
         self.d_vecs_path = './data/davis/drug_vec.csv'
