@@ -16,8 +16,8 @@ if __name__=='__main__':
     parser.add_argument('--device', default='cpu', type=str, metavar='string')
     parser.add_argument('-e', '--epochs', default=1000, type=int, metavar='int')
     parser.add_argument('-d', '--dataset', default='kiba', type=str, metavar='string')
-    parser.add_argument('-b', '--batch-size', default=128, type=int, metavar='int')
-    parser.add_argument('-lr', '--learning-rate', default=0.001, type=float, metavar='float')
+    parser.add_argument('-b', '--batch-size', default=512, type=int, metavar='int')
+    parser.add_argument('-lr', '--learning-rate', default=0.004, type=float, metavar='float')
     parser.add_argument('-l1', '--lambda_1', default=0.00001, type=float, metavar='float')
     parser.add_argument('-l2', '--lambda_2', default=1, type=float, metavar='float')
     parser.add_argument('-w', '--weight_decay', default=0.0, type=float, metavar='float')
@@ -33,7 +33,7 @@ if __name__=='__main__':
     mseLoss = nn.MSELoss()
     aeMseLoss = nn.MSELoss()
     # mseLoss = WeightedMSELoss(train.alpha)
-    model = FC().to(args.device)
+    model = FC(train.p_gos_dim).to(args.device)
     optimizer = torch.optim.Adam(model.parameters(), lr=args.learning_rate, weight_decay=args.weight_decay)
 
     print('training...')
@@ -50,17 +50,19 @@ if __name__=='__main__':
 
             optimizer.step()
 
-        with torch.no_grad():
-            preds = torch.tensor([], device=args.device)
-            labels = torch.tensor([], device=args.device)
-            for d_index, p_index, d_vecs, p_embeddings, y in testLoader:
-                y_bar, _, _, _ = model(d_index, p_index, d_vecs, p_embeddings, y, test)
-                preds = torch.cat((preds, y_bar.flatten()), dim=0)
-                labels = torch.cat((labels, y.flatten()), dim=0)
+        if epoch % 10 == 0:
+            with torch.no_grad():
+                preds = torch.tensor([], device=args.device)
+                labels = torch.tensor([], device=args.device)
+                for d_index, p_index, d_vecs, p_embeddings, y in testLoader:
+                    y_bar, _, _, _ = model(d_index, p_index, d_vecs, p_embeddings, y, test)
+                    preds = torch.cat((preds, y_bar.flatten()), dim=0)
+                    labels = torch.cat((labels, y.flatten()), dim=0)
 
-            test_mse = mean_squared_error(preds.cpu().numpy(), labels.cpu().numpy())
-            print('Epoch: {} train loss: {:.6f} train mse: {:.6f} test mse: {:.6f}'.format(
-                epoch, trainLoss.item(), train_mse.item(), test_mse
-            ))
+                test_mse = mean_squared_error(preds.cpu().numpy(), labels.cpu().numpy())
+                print('Epoch: {} train loss: {:.6f} train mse: {:.6f} test mse: {:.6f}'.format(
+                    epoch, trainLoss.item(), train_mse.item(), test_mse
+                ))
+
     print('train mse: {:.6f} test mse: {:.6f}'.format(train_mse.item(), test_mse))
     print(args)
