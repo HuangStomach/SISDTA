@@ -30,15 +30,21 @@ class MultiDataset(Dataset):
 
         self.d_vecs = torch.tensor(self.handler.d_vecs, dtype=torch.float32, device=self.device)
         self.d_ecfps = torch.tensor(self.handler.d_ecfps, dtype=torch.float32, device=self.device)
+        self.d_sim = torch.tensor(self.handler.d_sim, dtype=torch.float32, device=self.device)
         self.d_intersect = self.handler.d_intersect
-        self.p_embeddings = torch.tensor(self.handler.p_embeddings, dtype=torch.float32, device=self.device)
+
         self.p_gos = torch.tensor(self.handler.p_gos, dtype=torch.float32, device=self.device)
         self.p_gos_dim = self.p_gos.size()[1]
-        self.dropout = self.handler.dropout
+        self.p_sim = torch.tensor(self.handler.p_sim, dtype=torch.float32, device=self.device)
+        self.p_embeddings = torch.tensor(self.handler.p_embeddings, dtype=torch.float32, device=self.device)
         self.p_intersect = self.handler.p_intersect
+
+        self.dropout = self.handler.dropout
         y = self.handler.y
         drugs = self.handler.drugs
+        self.dsize = self.d_sim.size()[0]
         proteins = self.handler.proteins
+        self.psize = self.p_sim.size()[0]
 
         indexes = []
         targets = []
@@ -112,7 +118,8 @@ class MultiDataset(Dataset):
         
         res = [
             dindex, pindex,
-            self.d_vecs[dindex], self.p_embeddings[pindex], self.targets[index]
+            self.d_vecs[dindex], self.d_sim[dindex],
+            self.p_sim[pindex], self.p_embeddings[pindex], self.targets[index]
         ]
 
         if self.train: res.append(self.classes[index])
