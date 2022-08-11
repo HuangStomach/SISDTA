@@ -39,12 +39,13 @@ class MultiDataset(Dataset):
         self.p_embeddings = torch.tensor(self.handler.p_embeddings, dtype=torch.float32, device=self.device)
         self.p_intersect = self.handler.p_intersect
 
+        self.dsize = self.d_sim.size()[0]
+        self.psize = self.p_sim.size()[0]
+
         self.dropout = self.handler.dropout
         y = self.handler.y
         drugs = self.handler.drugs
-        self.dsize = self.d_sim.size()[0]
         proteins = self.handler.proteins
-        self.psize = self.p_sim.size()[0]
 
         indexes = []
         targets = []
@@ -91,16 +92,19 @@ class MultiDataset(Dataset):
             self.p_intersect[mask] = 0.0
             self.p_intersect[:, mask] = 0.0
 
-        self.d_edge_index, self.d_edge_weight = self._graph_gen(self.d_ecfps, self.d_intersect)
-        self.p_edge_index, self.p_edge_weight = self._graph_gen(self.p_gos, self.p_intersect)
+        self.d_inter_ei, self.d_inter_ew = self._graph_gen(self.dsize, self.d_intersect)
+        self.p_inter_ei, self.p_inter_ew = self._graph_gen(self.psize, self.p_intersect)
+        self.d_sim_ei, self.d_sim_ew = self._graph_gen(self.dsize, self.d_sim)
+        self.p_sim_ei, self.p_sim_ew = self._graph_gen(self.psize, self.p_sim)
+
         self.indexes = torch.tensor(indexes, dtype=torch.long, device=self.device)
         self.targets = torch.tensor(targets, dtype=torch.float32, device=self.device).view(-1, 1)
 
-    def _graph_gen(self, feature, matrix):
+    def _graph_gen(self, size, matrix):
         edge_index = []
         edge_weight = []
         
-        for i in range(len(feature)):
+        for i in range(size):
             neighbors = (-matrix[i]).argsort()[1:]
             for k, neighbor in enumerate(neighbors):
                 if k > 4 and matrix[i][neighbor] < 0.5: break

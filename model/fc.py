@@ -3,52 +3,63 @@ import torch.nn as nn
 from torch_geometric.nn import Sequential, GCNConv
 
 class FC(nn.Module):
-    def __init__(self, p_gos_dim, dropout):
+    def __init__(self, p_gos_dim, dsize, psize):
         super(FC, self).__init__()
+        # vector embedding ecfps gos ecfps gos
+        dim = 300 + 1024 + 1024 + 1024 + 1024 + 1024
 
         self.encoder = nn.Sequential(
-            nn.Linear(300 + 1024 + 1024 + 1024, 1024),
-            nn.BatchNorm1d(1024),
+            nn.Linear(dim, 2048),
+            nn.BatchNorm1d(2048),
             nn.ReLU(),
-            nn.Linear(1024, 256),
-            nn.BatchNorm1d(256),
+            nn.Linear(2048, 512),
+            nn.BatchNorm1d(512),
             nn.ReLU(),
         )
 
         self.decoder = nn.Sequential(
-            nn.Linear(256, 1024),
-            nn.BatchNorm1d(1024),
+            nn.Linear(512, 2048),
+            nn.BatchNorm1d(2048),
             nn.ReLU(),
-            nn.Linear(1024, 300 + 1024 + 1024 + 1024),
-            nn.BatchNorm1d(3372),
+            nn.Linear(2048, dim),
+            nn.BatchNorm1d(dim),
             nn.ReLU(),
         )
 
         self.output = nn.Sequential(
-            nn.Linear(256, 64),
-            nn.BatchNorm1d(64),
-            nn.Dropout(dropout),
+            nn.Linear(512, 128),
+            nn.BatchNorm1d(128),
             nn.LeakyReLU(),
-            nn.Linear(64, 1),
+            nn.Linear(128, 1),
         )
 
-        self.d_gcn = Sequential('x, edge_index, edge_weight', [
+        self.ecfps_inter = Sequential('x, edge_index, edge_weight', [
             (GCNConv(1024, 1024), 'x, edge_index, edge_weight -> x1'),
-            nn.Dropout(dropout),
             nn.LeakyReLU(),
         ])
 
-        self.p_gcn = Sequential('x, edge_index, edge_weight', [
+        self.ecfps_sim = Sequential('x, edge_index, edge_weight', [
+            (GCNConv(1024, 1024), 'x, edge_index, edge_weight -> x1'),
+            nn.LeakyReLU(),
+        ])
+
+        self.gos_inter = Sequential('x, edge_index, edge_weight', [
             (GCNConv(p_gos_dim, 1024), 'x, edge_index, edge_weight -> x1'),
-            nn.Dropout(dropout),
             nn.LeakyReLU(),
         ])
 
-    def forward(self, d_index, p_index, d_vecs, p_embeddings, y, dataset):
-        ecfps = self.d_gcn(dataset.d_ecfps, dataset.d_edge_index, dataset.d_edge_weight)[d_index]
-        gos = self.p_gcn(dataset.p_gos, dataset.p_edge_index, dataset.p_edge_weight)[p_index]
+        self.gos_sim = Sequential('x, edge_index, edge_weight', [
+            (GCNConv(p_gos_dim, 1024), 'x, edge_index, edge_weight -> x1'),
+            nn.LeakyReLU(),
+        ])
 
-        feature = torch.cat((d_vecs, p_embeddings, ecfps, gos), dim = 1)
+    def forward(self, d_index, p_index, d_vecs, p_embeddings, d_sim, p_sim, dataset):
+        i_ecfps = self.ecfps_inter(dataset.d_ecfps, dataset.d_inter_ei, dataset.d_inter_ew)[d_index]
+        i_gos = self.gos_inter(dataset.p_gos, dataset.p_inter_ew, dataset.p_inter_ew)[p_index]
+        s_ecfps = self.ecfps_sim(dataset.d_ecfps, dataset.d_inter_ei, dataset.d_inter_ew)[d_index]
+        s_gps = self.gos_sim(dataset.d_ecfps, dataset.d_inter_ei, dataset.d_inter_ew)[d_index]
+
+        feature = torch.cat((d_vecs, p_embeddings, i_ecfps, i_gos, d_sim, p_sim), dim = 1)
         encoded = self.encoder(feature)
         decoded = self.decoder(encoded)
         y = self.output(encoded)

@@ -33,14 +33,14 @@ if __name__=='__main__':
     mseLoss = nn.MSELoss()
     aeMseLoss = nn.MSELoss()
     # mseLoss = WeightedMSELoss(train.alpha)
-    model = FC(train.p_gos_dim, train.dropout).to(args.device)
+    model = FC(train.p_gos_dim, train.dsize, train.psize).to(args.device)
     optimizer = torch.optim.Adam(model.parameters(), lr=args.learning_rate, weight_decay=args.weight_decay)
 
     print('training...')
     for epoch in range(args.epochs):
-        for d_index, p_index, d_vecs, p_embeddings, y, classes in tqdm(trainLoader, leave=False):
+        for d_index, p_index, d_vecs, d_sim, p_sim, p_embeddings, y, classes in tqdm(trainLoader, leave=False):
             optimizer.zero_grad()
-            y_bar, encoded, decoded, feature = model(d_index, p_index, d_vecs, p_embeddings, y, train)
+            y_bar, encoded, decoded, feature = model(d_index, p_index, d_vecs, p_embeddings, d_sim, p_sim, train)
 
             train_mse = mseLoss(y, y_bar)
             trainLoss = train_mse + \
@@ -54,8 +54,8 @@ if __name__=='__main__':
             with torch.no_grad():
                 preds = torch.tensor([], device=args.device)
                 labels = torch.tensor([], device=args.device)
-                for d_index, p_index, d_vecs, p_embeddings, y in testLoader:
-                    y_bar, _, _, _ = model(d_index, p_index, d_vecs, p_embeddings, y, test)
+                for d_index, p_index, d_vecs, d_sim, p_sim, p_embeddings, y in testLoader:
+                    y_bar, _, _, _ = model(d_index, p_index, d_vecs, p_embeddings, d_sim, p_sim, test)
                     preds = torch.cat((preds, y_bar.flatten()), dim=0)
                     labels = torch.cat((labels, y.flatten()), dim=0)
 
