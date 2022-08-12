@@ -92,22 +92,24 @@ class MultiDataset(Dataset):
             self.p_intersect[mask] = 0.0
             self.p_intersect[:, mask] = 0.0
 
+        print('generating intersect graph...')
         self.d_inter_ei, self.d_inter_ew = self._graph_gen(self.dsize, self.d_intersect)
         self.p_inter_ei, self.p_inter_ew = self._graph_gen(self.psize, self.p_intersect)
-        self.d_sim_ei, self.d_sim_ew = self._graph_gen(self.dsize, self.d_sim)
+        print('generating similarity graph...')
+        self.d_sim_ei, self.d_sim_ew = self._graph_gen(self.dsize, self.d_sim, 0.7)
         self.p_sim_ei, self.p_sim_ew = self._graph_gen(self.psize, self.p_sim)
 
         self.indexes = torch.tensor(indexes, dtype=torch.long, device=self.device)
         self.targets = torch.tensor(targets, dtype=torch.float32, device=self.device).view(-1, 1)
 
-    def _graph_gen(self, size, matrix):
+    def _graph_gen(self, size, matrix, threshold=0.5):
         edge_index = []
         edge_weight = []
         
         for i in range(size):
             neighbors = (-matrix[i]).argsort()[1:]
             for k, neighbor in enumerate(neighbors):
-                if k > 4 and matrix[i][neighbor] < 0.5: break
+                if k > 4 and matrix[i][neighbor] < threshold: break
                 # 暂时注释掉反向边
                 # edge_index.append([i, neighbor])
                 # edge_weight.append(matrix[neighbor][i])

@@ -55,11 +55,11 @@ class FC(nn.Module):
 
     def forward(self, d_index, p_index, d_vecs, p_embeddings, d_sim, p_sim, dataset):
         i_ecfps = self.ecfps_inter(dataset.d_ecfps, dataset.d_inter_ei, dataset.d_inter_ew)[d_index]
-        i_gos = self.gos_inter(dataset.p_gos, dataset.p_inter_ew, dataset.p_inter_ew)[p_index]
-        s_ecfps = self.ecfps_sim(dataset.d_ecfps, dataset.d_inter_ei, dataset.d_inter_ew)[d_index]
-        s_gps = self.gos_sim(dataset.d_ecfps, dataset.d_inter_ei, dataset.d_inter_ew)[d_index]
+        i_gos = self.gos_inter(dataset.p_gos, dataset.p_inter_ei, dataset.p_inter_ew)[p_index]
+        s_ecfps = self.ecfps_sim(dataset.d_ecfps, dataset.d_sim_ei, dataset.d_sim_ew)[d_index]
+        s_gos = self.gos_sim(dataset.p_gos, dataset.p_sim_ei, dataset.p_sim_ew)[p_index]
 
-        feature = torch.cat((d_vecs, p_embeddings, i_ecfps, i_gos, d_sim, p_sim), dim = 1)
+        feature = torch.cat((d_vecs, p_embeddings, i_ecfps, i_gos, s_gos, s_ecfps), dim = 1)
         encoded = self.encoder(feature)
         decoded = self.decoder(encoded)
         y = self.output(encoded)
