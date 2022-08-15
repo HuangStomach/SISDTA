@@ -1,0 +1,2 @@
+train mse: 0.027055 test mse: 0.184061
+Namespace(batch_size=512, dataset='davis', device='cuda:0', epochs=1000, lambda_1=1e-05, lambda_2=1, learning_rate=0.001, unit=0.1, weight_decay=0.0)

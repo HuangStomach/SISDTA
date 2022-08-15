@@ -1,2 +1,4 @@
 train mse: 0.004431 test mse: 0.123472
 Namespace(batch_size=512, dataset='kiba', device='cuda:0', epochs=1000, lambda_1=1e-05, lambda_2=1, learning_rate=0.002, unit=0.1, weight_decay=0.0)
+train mse: 0.003523 test mse: 0.123333
+Namespace(batch_size=512, dataset='kiba', device='cuda:0', epochs=1000, lambda_1=1e-05, lambda_2=1, learning_rate=0.002, unit=0.1, weight_decay=0.0)
