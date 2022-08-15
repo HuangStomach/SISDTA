@@ -4,7 +4,9 @@ import json
 
 class Kiba:
     def __init__(self, train = True):
+        self.train = train
         self.dropout = 0.0
+        self.d_sim_threshold = 0.7
         self.ligands_path = './data/kiba/ligands_can.json'
         self.d_ecfps_path = './data/kiba/drug_ecfps.csv'
         self.d_vecs_path = './data/kiba/drug_vec.csv'
@@ -14,7 +16,7 @@ class Kiba:
         self.p_sim_path = './data/kiba/kiba_target_sim.txt'
         self.p_intersect_path = './data/kiba/protein_intersect.csv'
 
-    def _load_data(self, train = True):
+    def _load_data(self):
         self.d_vecs = np.loadtxt(self.d_vecs_path, delimiter=',', dtype=float, comments=None)
         self.d_ecfps = np.loadtxt(self.d_ecfps_path, delimiter=',', dtype=int, comments=None)
         self.d_sim = np.loadtxt(self.d_sim_path, delimiter='\t', dtype=float, comments=None)
@@ -27,12 +29,12 @@ class Kiba:
 
         self.y = np.loadtxt('./data/kiba/Y.txt', delimiter=',', dtype=float, comments=None)
 
-        name = "./data/kiba/folds/train_fold_setting1.txt" if train \
+        name = "./data/kiba/folds/train_fold_setting1.txt" if self.train \
             else "./data/kiba/folds/test_fold_setting1.txt"
 
         with open(name) as f:
             indexes = []
-            if train: 
+            if self.train: 
                 for item in json.load(f):
                     indexes.extend(item)
             else: indexes = json.load(f)

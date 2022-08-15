@@ -26,7 +26,7 @@ class MultiDataset(Dataset):
         self.handler = handlers[type](self.train)
 
         self._check_exists()
-        self.handler._load_data(train)
+        self.handler._load_data()
 
         self.d_vecs = torch.tensor(self.handler.d_vecs, dtype=torch.float32, device=self.device)
         self.d_ecfps = torch.tensor(self.handler.d_ecfps, dtype=torch.float32, device=self.device)
@@ -96,7 +96,7 @@ class MultiDataset(Dataset):
         self.d_inter_ei, self.d_inter_ew = self._graph_gen(self.dsize, self.d_intersect)
         self.p_inter_ei, self.p_inter_ew = self._graph_gen(self.psize, self.p_intersect)
         print('generating similarity graph...')
-        self.d_sim_ei, self.d_sim_ew = self._graph_gen(self.dsize, self.d_sim, 0.7)
+        self.d_sim_ei, self.d_sim_ew = self._graph_gen(self.dsize, self.d_sim, self.handler.d_sim_threshold)
         self.p_sim_ei, self.p_sim_ew = self._graph_gen(self.psize, self.p_sim)
 
         self.indexes = torch.tensor(indexes, dtype=torch.long, device=self.device)

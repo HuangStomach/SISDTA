@@ -12,13 +12,13 @@ class FC(nn.Module):
             nn.Linear(dim, 2048),
             nn.BatchNorm1d(2048),
             nn.ReLU(),
-            nn.Linear(2048, 512),
-            nn.BatchNorm1d(512),
+            nn.Linear(2048, 1024),
+            nn.BatchNorm1d(1024),
             nn.ReLU(),
         )
 
         self.decoder = nn.Sequential(
-            nn.Linear(512, 2048),
+            nn.Linear(1024, 2048),
             nn.BatchNorm1d(2048),
             nn.ReLU(),
             nn.Linear(2048, dim),
@@ -27,10 +27,10 @@ class FC(nn.Module):
         )
 
         self.output = nn.Sequential(
-            nn.Linear(512, 128),
-            nn.BatchNorm1d(128),
+            nn.Linear(1024, 256),
+            nn.BatchNorm1d(256),
             nn.LeakyReLU(),
-            nn.Linear(128, 1),
+            nn.Linear(256, 1),
         )
 
         self.ecfps_inter = Sequential('x, edge_index, edge_weight', [
@@ -59,7 +59,10 @@ class FC(nn.Module):
         s_ecfps = self.ecfps_sim(dataset.d_ecfps, dataset.d_sim_ei, dataset.d_sim_ew)[d_index]
         s_gos = self.gos_sim(dataset.p_gos, dataset.p_sim_ei, dataset.p_sim_ew)[p_index]
 
-        feature = torch.cat((d_vecs, p_embeddings, i_ecfps, i_gos, s_gos, s_ecfps), dim = 1)
+        feature = torch.cat((
+            d_vecs, p_embeddings, 
+            i_ecfps, i_gos, s_gos, s_ecfps,
+        ), dim = 1)
         encoded = self.encoder(feature)
         decoded = self.decoder(encoded)
         y = self.output(encoded)
