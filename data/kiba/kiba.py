@@ -6,7 +6,9 @@ class Kiba:
     def __init__(self, train = True):
         self.train = train
         self.dropout = 0.0
-        self.d_sim_threshold = 0.7
+        self.sim_neighbor_num = 5
+        self.sim_threshold = 0.7
+        
         self.ligands_path = './data/kiba/ligands_can.json'
         self.d_ecfps_path = './data/kiba/drug_ecfps.csv'
         self.d_vecs_path = './data/kiba/drug_vec.csv'
