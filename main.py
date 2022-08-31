@@ -8,7 +8,6 @@ import argparse
 
 from model.fc import FC
 from model.supconloss import SupConLoss
-from model.weightedmseloss import WeightedMSELoss
 from data.dataset import MultiDataset
 
 if __name__=='__main__':
@@ -38,9 +37,9 @@ if __name__=='__main__':
 
     print('training...')
     for epoch in range(args.epochs):
-        for d_index, p_index, d_vecs, d_sim, p_sim, p_embeddings, y, classes in tqdm(trainLoader, leave=False):
+        for d_index, p_index, d_vecs, p_embeddings, y, classes in tqdm(trainLoader, leave=False):
             optimizer.zero_grad()
-            y_bar, encoded, decoded, feature = model(d_index, p_index, d_vecs, p_embeddings, d_sim, p_sim, train)
+            y_bar, encoded, decoded, feature = model(d_index, p_index, d_vecs, p_embeddings, train)
 
             train_mse = mseLoss(y, y_bar)
             trainLoss = train_mse + \
@@ -54,8 +53,8 @@ if __name__=='__main__':
             with torch.no_grad():
                 preds = torch.tensor([], device=args.device)
                 labels = torch.tensor([], device=args.device)
-                for d_index, p_index, d_vecs, d_sim, p_sim, p_embeddings, y in testLoader:
-                    y_bar, _, _, _ = model(d_index, p_index, d_vecs, p_embeddings, d_sim, p_sim, test)
+                for d_index, p_index, d_vecs, p_embeddings, y in testLoader:
+                    y_bar, _, _, _ = model(d_index, p_index, d_vecs, p_embeddings, test)
                     preds = torch.cat((preds, y_bar.flatten()), dim=0)
                     labels = torch.cat((labels, y.flatten()), dim=0)
 

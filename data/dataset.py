@@ -128,8 +128,8 @@ class MultiDataset(Dataset):
         
         res = [
             dindex, pindex,
-            self.d_vecs[dindex], self.d_sim[dindex],
-            self.p_sim[pindex], self.p_embeddings[pindex], self.targets[index]
+            self.d_vecs[dindex], self.p_embeddings[pindex], 
+            self.targets[index]
         ]
 
         if self.train: res.append(self.classes[index])

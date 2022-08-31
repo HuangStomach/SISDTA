@@ -53,7 +53,7 @@ class FC(nn.Module):
             nn.LeakyReLU(),
         ])
 
-    def forward(self, d_index, p_index, d_vecs, p_embeddings, d_sim, p_sim, dataset):
+    def forward(self, d_index, p_index, d_vecs, p_embeddings, dataset):
         i_ecfps = self.ecfps_inter(dataset.d_ecfps, dataset.d_inter_ei, dataset.d_inter_ew)[d_index]
         i_gos = self.gos_inter(dataset.p_gos, dataset.p_inter_ei, dataset.p_inter_ew)[p_index]
         s_ecfps = self.ecfps_sim(dataset.d_ecfps, dataset.d_sim_ei, dataset.d_sim_ew)[d_index]
