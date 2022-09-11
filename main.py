@@ -7,7 +7,7 @@ from tqdm import tqdm
 import argparse
 
 from model.fc import FC
-from model.supconloss import SupConLoss
+from model.loss import SupConLoss
 from data.dataset import MultiDataset
 
 if __name__=='__main__':
