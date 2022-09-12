@@ -3,11 +3,12 @@ import torch.nn as nn
 from torch.utils.data import DataLoader
 # from torch_geometric.loader import DataLoader
 from sklearn.metrics import mean_squared_error
+from metrics import get_cindex, get_rm2
 from tqdm import tqdm
 import argparse
 
 from model.fc import FC
-from model.loss import SupConLoss
+from model.supconloss import SupConLoss
 from data.dataset import MultiDataset
 
 if __name__=='__main__':
@@ -58,9 +59,13 @@ if __name__=='__main__':
                     preds = torch.cat((preds, y_bar.flatten()), dim=0)
                     labels = torch.cat((labels, y.flatten()), dim=0)
 
-                test_mse = mean_squared_error(preds.cpu().numpy(), labels.cpu().numpy())
-                print('Epoch: {} train loss: {:.6f} train mse: {:.6f} test mse: {:.6f}'.format(
-                    epoch, trainLoss.item(), train_mse.item(), test_mse
+                p = preds.cpu().numpy()
+                l = labels.cpu().numpy()
+                test_mse = mean_squared_error(p, l)
+                ci = get_cindex(l, p)
+                rm2 = get_rm2(l, p)
+                print('Epoch: {} train loss: {:.6f} train mse: {:.6f} test mse: {:.6f} ci: {:.6f} rm2: {:.6f}'.format(
+                    epoch, trainLoss.item(), train_mse.item(), test_mse, ci, rm2
                 ))
 
     print('train mse: {:.6f} test mse: {:.6f}'.format(train_mse.item(), test_mse))
