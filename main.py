@@ -68,5 +68,6 @@ if __name__=='__main__':
                     epoch, trainLoss.item(), train_mse.item(), test_mse, ci, rm2
                 ))
 
+    torch.save(model.state_dict(), './output/{}_model.pt'.format(args.dataset))
     print('train mse: {:.6f} test mse: {:.6f}'.format(train_mse.item(), test_mse))
     print(args)
