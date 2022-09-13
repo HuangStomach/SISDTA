@@ -17,7 +17,7 @@ if __name__=='__main__':
     parser.add_argument('-e', '--epochs', default=1000, type=int, metavar='int')
     parser.add_argument('-d', '--dataset', default='kiba', type=str, metavar='string')
     parser.add_argument('-b', '--batch-size', default=512, type=int, metavar='int')
-    parser.add_argument('-lr', '--learning-rate', default=0.004, type=float, metavar='float')
+    parser.add_argument('-lr', '--learning-rate', default=0.002, type=float, metavar='float')
     parser.add_argument('-l1', '--lambda_1', default=0.00001, type=float, metavar='float')
     parser.add_argument('-l2', '--lambda_2', default=1, type=float, metavar='float')
     parser.add_argument('-w', '--weight_decay', default=0.0, type=float, metavar='float')
