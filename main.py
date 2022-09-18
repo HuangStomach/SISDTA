@@ -38,7 +38,7 @@ if __name__=='__main__':
     optimizer = torch.optim.Adam(model.parameters(), lr=args.learning_rate, weight_decay=args.weight_decay)
 
     print('training...')
-    for epoch in range(args.epochs):
+    for epoch in range(1, args.epochs + 1):
         for d_index, p_index, d_vecs, p_embeddings, y, classes in tqdm(trainLoader, leave=False):
             optimizer.zero_grad()
             y_bar, encoded, decoded, feature = model(d_index, p_index, d_vecs, p_embeddings, train)
