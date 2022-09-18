@@ -8,7 +8,9 @@ class FC(nn.Module):
         # vector embedding ecfps gos ecfps gos
         self.sim = sim
         self.csi = csi
-        dim = 300 + 1024 + 1024 + 1024 + 1024 + 1024
+        dim = 300 + 1024;
+        if self.sim: dim += 2048;
+        if self.csi: dim += 2048;
 
         self.encoder = nn.Sequential(
             nn.Linear(dim, 2048),
@@ -56,22 +58,24 @@ class FC(nn.Module):
             ])
 
     def forward(self, d_index, p_index, d_vecs, p_embeddings, dataset):
-        feature = torch.cat((
-            d_vecs, p_embeddings
-        ), dim = 1)
-
+        features = [d_vecs, p_embeddings]
+        
         if self.csi:
             i_ecfps = self.ecfps_csi(dataset.d_ecfps, dataset.d_inter_ei, dataset.d_inter_ew)[d_index]
             i_gos = self.gos_csi(dataset.p_gos, dataset.p_inter_ei, dataset.p_inter_ew)[p_index]
-            feature = torch.cat((feature, i_ecfps, i_gos), dim = 1)
+            features.append(i_ecfps)
+            features.append(i_gos)
         if self.sim:
             s_ecfps = self.ecfps_sim(dataset.d_ecfps, dataset.d_sim_ei, dataset.d_sim_ew)[d_index]
             s_gos = self.gos_sim(dataset.p_gos, dataset.p_sim_ei, dataset.p_sim_ew)[p_index]
-            feature = torch.cat((feature, s_ecfps, s_gos), dim = 1)
+            features.append(s_ecfps)
+            features.append(s_gos)
 
-        if not self.csi and self.sim:
-            feature = torch.cat((feature, dataset.d_ecfps[d_index], dataset.p_gos[p_index]), dim = 1)
+        if not self.csi and not self.sim:
+            features.append(dataset.d_ecfps[d_index])
+            features.append(dataset.p_gos[p_index])
 
+        feature = torch.cat(features, dim = 1)
         encoded = self.encoder(feature)
         decoded = self.decoder(encoded)
         y = self.output(encoded)
