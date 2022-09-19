@@ -44,5 +44,8 @@ if __name__ ==  '__main__':
     ci = get_cindex(labels, preds)
     rm2 = get_rm2(labels, preds)
     print(test_mse, ci, rm2)
-    np.savetxt('output/{}_preds.txt'.format(args.dataset), preds, fmt='%f')
-    np.savetxt('output/{}_labels.txt'.format(args.dataset), labels, fmt='%f')
+    with open('./output/{}_coord.js'.format(args.dataset), 'w') as file:
+        file.write('var data = [\n')
+        for i in range(len(labels)):
+            file.write('[{}, {}],\n'.format(preds[i], labels[i]))
+        file.write(']\n')

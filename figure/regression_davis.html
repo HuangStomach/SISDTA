@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="zh-CN" style="height: 100%">
+
+<head>
+  <meta charset="utf-8">
+</head>
+
+<body style="height: 100%; margin: 0">
+  <div id="container" style="height: 100%"></div>
+  <script src="https://fastly.jsdelivr.net/npm/echarts@5.3.3/dist/echarts.min.js"></script>
+  <script src="../output/davis_coord.js"></script>
+  <script>
+    let dom = document.getElementById('container');
+    const myChart = echarts.init(dom, null, {
+      renderer: 'canvas',
+      useDirtyRect: false
+    });
+    const app = {};
+    const markLine = {
+      animation: false,
+      lineStyle: {
+        type: 'dashed',
+        color: '#5470c6'
+      },
+      data: [
+        [
+          { coord: [4, 4], symbol: 'none' },
+          { coord: [11, 11], symbol: 'none' }
+        ]
+      ],
+    };
+    const option = {
+      toolbox: {
+        show: true,
+        feature: {
+          dataView: { readOnly: false },
+          restore: {},
+          saveAsImage: {}
+        }
+      },
+      title: {
+        text: "Davis",
+        left: 'center',
+        top: 0
+      },
+      xAxis: {
+        name: 'Real',
+        nameLocation: 'center',
+        nameTextStyle: {
+          fontSize: 24,
+        },
+        min: 4, max: 11
+      },
+      yAxis: {
+        name: 'Predict',
+        nameLocation: 'center',
+        nameTextStyle: {
+          fontSize: 24,
+        },
+        min: 4, max: 11
+      },
+      series: {
+        name: 'I',
+        type: 'scatter',
+        data,
+        markLine,
+      },
+      color: ['#91cc75', '#fac858', '#ee6666', '#73c0de', '#3ba272', '#fc8452', '#9a60b4', '#ea7ccc']
+    };
+
+    myChart.setOption(option);
+    window.addEventListener('resize', myChart.resize);
+  </script>
+</body>
+
+</html>
