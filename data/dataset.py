@@ -61,12 +61,11 @@ class MultiDataset(Dataset):
             indexes.append([i, j])
             targets.append(y[i][j])
 
-        if self.train:
-            # 对比学习所需的分类
-            for v in targets:
-                classes.append(int(v / unit))
+        # 对比学习所需的分类
+        for v in targets:
+            classes.append(int(v / unit))
 
-            self.classes = torch.tensor(classes, dtype=torch.long, device=self.device)
+        self.classes = torch.tensor(classes, dtype=torch.long, device=self.device)
 
         # print('generating intersect graph...')
         # self.d_inter_ei, self.d_inter_ew = self._graph_gen(self.dsize, self.d_intersect, 5)
@@ -107,7 +106,7 @@ class MultiDataset(Dataset):
         ]
 
         if not self.new: res.append(self.targets[index])
-        if self.train: res.append(self.classes[index])
+        res.append(self.classes[index])
         return res
 
     def __len__(self):
