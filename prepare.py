@@ -182,7 +182,7 @@ if __name__=='__main__':
     # protein()
     # protein_token(dataType)
     # drug_smile()
-    drug_ecfps(dataType, 'ligands_can.json')
+    # drug_ecfps(dataType, 'ligands_can.json')
     # drug_intersect1d(dataType)
     # protein_go('kiba')
     # protein_go_vector(dataType)
