@@ -54,7 +54,7 @@ if __name__=='__main__':
             with torch.no_grad():
                 preds = torch.tensor([], device=args.device)
                 labels = torch.tensor([], device=args.device)
-                for d_index, p_index, d_vecs, p_embeddings, y in testLoader:
+                for d_index, p_index, d_vecs, p_embeddings, y, _ in testLoader:
                     y_bar, _, _, _ = model(d_index, p_index, d_vecs, p_embeddings, test)
                     preds = torch.cat((preds, y_bar.flatten()), dim=0)
                     labels = torch.cat((labels, y.flatten()), dim=0)

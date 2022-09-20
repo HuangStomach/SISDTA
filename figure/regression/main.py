@@ -12,7 +12,7 @@ if __name__=='__main__':
     preds = torch.tensor([])
     labels = torch.tensor([])
 
-    for d_index, p_index, d_vecs, p_embeddings, y in predict.loader():
+    for d_index, p_index, d_vecs, p_embeddings, y, _ in predict.loader():
         y_bar, _, _, _ = predict.model()(d_index, p_index, d_vecs, p_embeddings, predict.dataset())
         for i, pred in enumerate(y_bar.flatten().detach().numpy()):
             preds = torch.cat((preds, y_bar.flatten()), dim=0)

@@ -12,7 +12,7 @@ if __name__=='__main__':
     errors_drug = [[] for _ in range(predict.dataset().dsize)]
     errors_protein = [[] for _ in range(predict.dataset().psize)]
 
-    for d_index, p_index, d_vecs, p_embeddings, y in predict.loader():
+    for d_index, p_index, d_vecs, p_embeddings, y, _ in predict.loader():
         y_bar, _, _, _ = predict.model()(d_index, p_index, d_vecs, p_embeddings, predict.dataset())
         for i, (pred, label) in enumerate(zip(y_bar.flatten().detach().numpy(), y.flatten().detach().numpy())):
             error = abs(pred - label)
