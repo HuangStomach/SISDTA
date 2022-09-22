@@ -93,8 +93,8 @@ class MultiDataset(Dataset):
             self.p_intersect[:, mask] = 0.0
 
         print('generating intersect graph...')
-        self.d_inter_ei, self.d_inter_ew = self._graph_gen(self.dsize, self.d_intersect)
-        self.p_inter_ei, self.p_inter_ew = self._graph_gen(self.psize, self.p_intersect)
+        self.d_inter_ei, self.d_inter_ew = self._graph_gen(self.dsize, self.d_intersect, 10)
+        self.p_inter_ei, self.p_inter_ew = self._graph_gen(self.psize, self.p_intersect, 10)
         print('generating similarity graph...')
         self.d_sim_ei, self.d_sim_ew = self._graph_gen(
             self.dsize, self.d_sim, self.handler.sim_neighbor_num, self.handler.sim_threshold
