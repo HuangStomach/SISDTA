@@ -18,11 +18,12 @@ handlers = {
 }
 
 class MultiDataset(Dataset):
-    def __init__(self, type = 'kiba', train = True, unit = 0.05, device = 'cpu'):
+    def __init__(self, type = 'kiba', train = True, unit = 0.05, device = 'cpu', new = False):
         # super().__init__(None, transform, pre_transform) # 无需预处理与下载
         print('initalizing {} {} dataset...'.format(type, 'train' if train else 'test'))
         self.device = device
         self.train = train
+        self.new = new
         self.handler = handlers[type](self.train)
 
         self._check_exists()
@@ -53,6 +54,9 @@ class MultiDataset(Dataset):
         for k in range(len(drugs)):
             i = drugs[k]
             j = proteins[k]
+            if self.new and np.isnan(y[i][j]):
+                indexes.append([i, j])
+                continue
             if np.isnan(y[i][j]): continue
             indexes.append([i, j])
             targets.append(y[i][j])
@@ -62,39 +66,11 @@ class MultiDataset(Dataset):
             for v in targets:
                 classes.append(int(v / unit))
 
-            # 重采样
-            # np_classes = np.array(classes, dtype=int)
-            # np_indexes = np.array(indexes, dtype=int)
-            # np_targets = np.array(targets, dtype=float)
-            # supplement = [[0,0]]
-            # uniq_array, count_array = np.unique(np_classes, axis=0, return_counts=True)
-            # for i, _ in enumerate(uniq_array):
-            #     times = min(5, count_array.max() // count_array[i])
-            #     for _ in range(times):
-            #         indices = np.where(np_classes == uniq_array[i])
-            #         indexes.extend(np_indexes[indices])
-            #         targets.extend(np_targets[indices])
-            #         classes.extend(np_classes[indices])
-
             self.classes = torch.tensor(classes, dtype=torch.long, device=self.device)
 
-            # 根据训练集对d_intersect矩阵进行mask
-            train_drugs = np.unique(drugs)
-            mask = np.ones(self.d_intersect.shape[0], bool)
-            mask[train_drugs] = False
-            self.d_intersect[mask] = 0.0
-            self.d_intersect[:, mask] = 0.0
-
-            # 根据训练集对p_intersect矩阵进行mask
-            train_proteins = np.unique(proteins)
-            mask = np.ones(self.p_intersect.shape[0], bool)
-            mask[train_proteins] = False
-            self.p_intersect[mask] = 0.0
-            self.p_intersect[:, mask] = 0.0
-
         print('generating intersect graph...')
-        self.d_inter_ei, self.d_inter_ew = self._graph_gen(self.dsize, self.d_intersect, 10)
-        self.p_inter_ei, self.p_inter_ew = self._graph_gen(self.psize, self.p_intersect, 10)
+        self.d_inter_ei, self.d_inter_ew = self._graph_gen(self.dsize, self.d_intersect, 5)
+        self.p_inter_ei, self.p_inter_ew = self._graph_gen(self.psize, self.p_intersect, 5, 0.8)
         print('generating similarity graph...')
         self.d_sim_ei, self.d_sim_ew = self._graph_gen(
             self.dsize, self.d_sim, self.handler.sim_neighbor_num, self.handler.sim_threshold
@@ -104,21 +80,20 @@ class MultiDataset(Dataset):
         )
 
         self.indexes = torch.tensor(indexes, dtype=torch.long, device=self.device)
-        self.targets = torch.tensor(targets, dtype=torch.float32, device=self.device).view(-1, 1)
+        if not new: self.targets = torch.tensor(targets, dtype=torch.float32, device=self.device).view(-1, 1)
 
-    def _graph_gen(self, size, matrix, neighbor_num=5, threshold=0.5):
+    def _graph_gen(self, size, matrix, neighbor_num=5, min=0.5, max=1.0):
         edge_index = []
         edge_weight = []
         
         for i in range(size):
-            neighbors = (-matrix[i]).argsort()[1:]
-            for k, neighbor in enumerate(neighbors):
-                if k >= neighbor_num and matrix[i][neighbor] < threshold: break
-                # 暂时注释掉反向边
-                # edge_index.append([i, neighbor])
-                # edge_weight.append(matrix[neighbor][i])
+            neighbors = (-matrix[i]).argsort()
+            k = 0
+            for neighbor in neighbors:
+                if k >= neighbor_num and matrix[i][neighbor] < min: break
                 edge_index.append([neighbor, i])
                 edge_weight.append(matrix[i][neighbor])
+                if matrix[i][neighbor] < max: k += 1
 
         return torch.tensor(edge_index, dtype=torch.long, device=self.device).t().contiguous(), \
             torch.tensor(edge_weight, dtype=torch.float32, device=self.device)
@@ -129,9 +104,9 @@ class MultiDataset(Dataset):
         res = [
             dindex, pindex,
             self.d_vecs[dindex], self.p_embeddings[pindex], 
-            self.targets[index]
         ]
 
+        if not self.new: res.append(self.targets[index])
         if self.train: res.append(self.classes[index])
         return res
 
