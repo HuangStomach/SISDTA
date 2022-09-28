@@ -72,6 +72,9 @@ class FC(nn.Module):
            features.append(self.ecfps_sim(dataset.d_ecfps, dataset.d_sim_ei, dataset.d_sim_ew)[d_index])
         if self.psim:
             features.append(self.gos_sim(dataset.p_gos, dataset.p_sim_ei, dataset.p_sim_ew)[p_index])
+        if not self.dcsi and not self.pcsi and not self.dsim and not self.psim:
+            features.append(dataset.d_ecfps[d_index])
+            features.append(dataset.p_gos[p_index])
 
         feature = torch.cat(features, dim = 1)
         encoded = self.encoder(feature)

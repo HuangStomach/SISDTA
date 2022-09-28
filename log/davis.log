@@ -13,3 +13,6 @@ Namespace(device='cuda:0', epochs=1000, dataset='davis', batch_size=512, learnin
 Epoch: 1000 train loss: 1.562970 train mse: 0.022982 test mse: 0.228284 ci: 0.899032 rm2: 0.710009
 train mse: 0.022982 test mse: 0.228284
 Namespace(device='cuda:0', epochs=1000, dataset='davis', batch_size=512, learning_rate=0.001, lambda_1=1e-05, lambda_2=1, sim=0, csi=0, weight_decay=0.0, unit=0.1)
+
+Epoch: 1000 train loss: 1.533265 train mse: 0.018550 test mse: 0.184830 ci: 0.910737 rm2: 0.765061
+Namespace(device='cuda:0', epochs=1000, dataset='davis', batch_size=512, learning_rate=0.0005, lambda_1=1e-05, lambda_2=1, dsim=1, dcsi=1, psim=1, pcsi=1, weight_decay=0.0, unit=0.1)
