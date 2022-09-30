@@ -16,6 +16,8 @@ class FC(nn.Module):
         if self.dcsi: dim += 1024
         if self.psim: dim += 1024
         if self.pcsi: dim += 1024
+        if not self.dcsi and not self.pcsi and not self.dsim and not self.psim:
+            dim += 1024 + p_gos_dim
 
         self.encoder = nn.Sequential(
             nn.Linear(dim, 2048),
