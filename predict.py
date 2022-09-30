@@ -36,7 +36,7 @@ if __name__ ==  '__main__':
     for d_index, p_index, d_vecs, p_embeddings in tqdm(loader, leave=False):
         y_bar, _, _, _ = model(d_index, p_index, d_vecs, p_embeddings, dataset)
         for i, pred in enumerate(y_bar.flatten().detach().numpy()):
-            if pred > 15: print(pred, d_index[i], p_index[i])
+            if pred <= 15 and pred > 14: print(pred, d_index[i], p_index[i])
     quit()
 
     preds = torch.tensor([])
