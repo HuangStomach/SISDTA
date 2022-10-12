@@ -2,17 +2,19 @@ import requests
 import json
 import pandas as pd
 import numpy as np
+import scipy.spatial.distance as distance
 from time import sleep
 from urllib import request
-from transformers import BertModel, BertTokenizer
+# from transformers import BertModel, BertTokenizer
 from rdkit import Chem
 from rdkit.Chem import AllChem
 
 import gc
 import re
 
-DTI = pd.read_csv('./data/DTI.csv')
+
 def protein_seq():
+    DTI = pd.read_csv('./data/DTI.csv')
     seqs = np.loadtxt('./data/protein/proteins.csv', dtype=str)
     can_download = False
 
@@ -34,39 +36,39 @@ def protein_seq():
     np.savetxt('./data/protein/proteins.csv', seqs, fmt='%s', delimiter=',')
 
 # breakpoint = 'P78527'
-threshold = 4128
-def protein_token(dataType = 'drugcentral'):
-    seqs = np.loadtxt('./data/{}/protein.csv'.format(dataType), dtype=str, delimiter=',')
-    tokenizer = BertTokenizer.from_pretrained("Rostlab/prot_bert", do_lower_case=False)
-    model = BertModel.from_pretrained("Rostlab/prot_bert")
-    can_continue = False
+# threshold = 4128
+# def protein_token(dataType = 'davis'):
+#     seqs = np.loadtxt('./data/{}/protein.csv'.format(dataType), dtype=str, delimiter=',')
+#     tokenizer = BertTokenizer.from_pretrained("Rostlab/prot_bert", do_lower_case=False)
+#     model = BertModel.from_pretrained("Rostlab/prot_bert")
+#     can_continue = False
 
-    file = './data/{}/protein_embedding.csv'.format(dataType)
-    with open(file, 'a+') as f:
-        for protein, _, seq in seqs:
-            # if protein == breakpoint: 
-            #     can_continue = True
-            #     continue
-            # if can_continue == False: continue
+#     file = './data/{}/protein_embedding.csv'.format(dataType)
+#     with open(file, 'a+') as f:
+#         for protein, _, seq in seqs:
+#             # if protein == breakpoint: 
+#             #     can_continue = True
+#             #     continue
+#             # if can_continue == False: continue
 
-            if len(seq) > threshold:
-                f.write(protein + '\n')
-                print(protein, 'Ignore')
-                continue
+#             if len(seq) > threshold:
+#                 f.write(protein + '\n')
+#                 print(protein, 'Ignore')
+#                 continue
 
-            s = " ".join(list(seq))
-            s = re.sub(r"[UZOB]", "X", s)
-            encoded_input = tokenizer(s, return_tensors='pt')
-            output = model(**encoded_input)
-            ll = output.pooler_output[0].detach().numpy().tolist()
-            line = protein + ',' + ','.join(map(str, ll))
-            f.write(line + '\n')   #加\n换行显示
-            del encoded_input
-            del output
-            del line
-            del ll
-            gc.collect()
-            print(protein, 'OK')
+#             s = " ".join(list(seq))
+#             s = re.sub(r"[UZOB]", "X", s)
+#             encoded_input = tokenizer(s, return_tensors='pt')
+#             output = model(**encoded_input)
+#             ll = output.pooler_output[0].detach().numpy().tolist()
+#             line = protein + ',' + ','.join(map(str, ll))
+#             f.write(line + '\n')   #加\n换行显示
+#             del encoded_input
+#             del output
+#             del line
+#             del ll
+#             gc.collect()
+#             print(protein, 'OK')
 
 def protein_go(type):
     seqs = []
@@ -94,7 +96,7 @@ def protein_go(type):
             print(protein, e)
             seqs.append([protein, 'ERROR'])
 
-def protein_go_vector(type = 'drugcentral'):
+def protein_go_vector(type = 'davis'):
     protein_go = np.loadtxt('./data/{}/protein_go.csv'.format(type), dtype=str, delimiter=',')
     proteins = protein_go[:, 0]
     go_set = set()
@@ -111,7 +113,7 @@ def protein_go_vector(type = 'drugcentral'):
 
 def drug_smile():
     seqs = []
-
+    DTI = pd.read_csv('./data/DTI.csv')
     drugs = DTI['STRUCT_ID'].unique()
     smilesinchl = pd.read_table('./data/drug/SMILESInChI.tsv', dtype=str, sep='\t')
     for drug in drugs:
@@ -124,7 +126,7 @@ def drug_smile():
 
     np.savetxt('./data/drug/smiles.csv', seqs, fmt='%s', delimiter=',')
 
-def drug_ecfps(dataType = 'drugcentral', filename = 'drug_smiles.csv'):
+def drug_ecfps(dataType = 'davis', filename = 'drug_smiles.csv'):
     radius = 4
     seqs = []
     type = filename.split('.')[1]
@@ -155,35 +157,75 @@ def drug_ecfps(dataType = 'drugcentral', filename = 'drug_smiles.csv'):
 
     np.savetxt('./data/{}/drug_ecfps.csv'.format(dataType), seqs, fmt='%d', delimiter=',')
 
-def drug_intersect1d(dataType = 'drugcentral'):
+def drug_sim(dataType = 'davis'):
     drug_ecfps = np.loadtxt('./data/{}/drug_ecfps.csv'.format(dataType), delimiter=',', dtype=int, comments=None)
     drug_count = drug_ecfps.shape[0]
-    matrix = np.zeros((drug_count, drug_count))
+
+    intersect = np.zeros((drug_count, drug_count))
+    cosine = np.zeros((drug_count, drug_count))
+    pearson = np.zeros((drug_count, drug_count))
+    euclidean = np.zeros((drug_count, drug_count))
+    jaccard = np.zeros((drug_count, drug_count))
 
     for i in range(drug_count):
         for j in range(drug_count):
+            # csi
             inter = np.sum(np.bitwise_and(drug_ecfps[i], drug_ecfps[j]))
-            matrix[i][j] = 1 - ((np.sum(drug_ecfps[j]) - inter) / np.sum(drug_ecfps[j]))
-    np.savetxt('./data/{}/drug_intersect.csv'.format(dataType), matrix, fmt='%s', delimiter=',')
+            intersect[i][j] = 1 - ((np.sum(drug_ecfps[j]) - inter) / np.sum(drug_ecfps[j]))
+            # cosine
+            cosine[i][j] = 1 - distance.cosine(drug_ecfps[i], drug_ecfps[j])
+            # pearson
+            pearson[i][j] = 1 - distance.correlation(drug_ecfps[i], drug_ecfps[j])
+            # euclidean
+            euclidean[i][j] = distance.euclidean(drug_ecfps[i], drug_ecfps[j])
+            # jaccard
+            jaccard[i][j] = 1 - distance.jaccard(drug_ecfps[i], drug_ecfps[j])
 
-def protein_intersect1d(dataType = 'drugcentral'):
-    protein_go_vectors = np.loadtxt('./data/{}/protein_go_vector.csv'.format(dataType), delimiter=',', dtype=int, comments=None)
+    np.savetxt('./data/{}/drug_intersect.csv'.format(dataType), intersect, fmt='%s', delimiter=',')
+    np.savetxt('./data/{}/drug_cosine.csv'.format(dataType), cosine, fmt='%s', delimiter=',')
+    np.savetxt('./data/{}/drug_pearson.csv'.format(dataType), pearson, fmt='%s', delimiter=',')
+    euclidean_max, euclidean_min = euclidean.max(axis=0), euclidean.min(axis=0)
+    euclidean = 1 - ((euclidean - euclidean_min) / (euclidean_max - euclidean_min))
+    np.savetxt('./data/{}/drug_euclidean.csv'.format(dataType), euclidean, fmt='%s', delimiter=',')
+    np.savetxt('./data/{}/drug_jaccard.csv'.format(dataType), jaccard, fmt='%s', delimiter=',')
+
+def protein_sim(dataType = 'davis'):
+    path = './data/{}/protein_go_vector.csv'.format(dataType)
+    with open(path) as f:
+        ncols = len(f.readline().split(','))
+
+    protein_go_vectors = np.loadtxt(path, delimiter=',', dtype=int, comments=None, skiprows=1, usecols=range(1,ncols))
     protein_count = protein_go_vectors.shape[0]
-    matrix = np.zeros((protein_count, protein_count))
+
+    intersect = np.zeros((protein_count, protein_count))
+    cosine = np.zeros((protein_count, protein_count))
+    pearson = np.zeros((protein_count, protein_count))
+    euclidean = np.zeros((protein_count, protein_count))
+    jaccard = np.zeros((protein_count, protein_count))
 
     for i in range(protein_count):
         for j in range(protein_count):
+            # csi
             inter = np.sum(np.bitwise_and(protein_go_vectors[i], protein_go_vectors[j]))
-            matrix[i][j] = 1 - ((np.sum(protein_go_vectors[j]) - inter) / np.sum(protein_go_vectors[j]))
-    np.savetxt('./data/{}/protein_intersect.csv'.format(dataType), matrix, fmt='%s', delimiter=',')
+            intersect[i][j] = 1 - ((np.sum(protein_go_vectors[j]) - inter) / np.sum(protein_go_vectors[j]))
+            # cosine
+            cosine[i][j] = 1 - distance.cosine(protein_go_vectors[i], protein_go_vectors[j])
+            # pearson
+            pearson[i][j] = 1 - distance.correlation(protein_go_vectors[i], protein_go_vectors[j])
+            # euclidean
+            euclidean[i][j] = distance.euclidean(protein_go_vectors[i], protein_go_vectors[j])
+            # jaccard
+            jaccard[i][j] = 1 - distance.jaccard(protein_go_vectors[i], protein_go_vectors[j])
+
+    np.savetxt('./data/{}/protein_intersect.csv'.format(dataType), intersect, fmt='%s', delimiter=',')
+    np.savetxt('./data/{}/protein_cosine.csv'.format(dataType), cosine, fmt='%s', delimiter=',')
+    np.savetxt('./data/{}/protein_pearson.csv'.format(dataType), pearson, fmt='%s', delimiter=',')
+    euclidean_max, euclidean_min = euclidean.max(axis=0), euclidean.min(axis=0)
+    euclidean = 1 - ((euclidean - euclidean_min) / (euclidean_max - euclidean_min))
+    np.savetxt('./data/{}/protein_euclidean.csv'.format(dataType), euclidean, fmt='%s', delimiter=',')
+    np.savetxt('./data/{}/protein_jaccard.csv'.format(dataType), jaccard, fmt='%s', delimiter=',')
 
 if __name__=='__main__':
     dataType = 'davis'
-    # protein()
-    # protein_token(dataType)
-    # drug_smile()
-    # drug_ecfps(dataType, 'ligands_can.json')
-    # drug_intersect1d(dataType)
-    # protein_go('kiba')
-    # protein_go_vector(dataType)
-    # protein_intersect1d(dataType)
+    drug_sim()
+    protein_sim()
