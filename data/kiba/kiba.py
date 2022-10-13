@@ -3,8 +3,9 @@ import numpy as np
 import json
 
 class Kiba:
-    def __init__(self, train = True):
+    def __init__(self, train = True, sim_type='csi'):
         self.train = train
+        self.sim_type = sim_type
         self.dropout = 0.0
         self.sim_neighbor_num = 5
         self.sim_threshold = 0.7
@@ -21,12 +22,24 @@ class Kiba:
     def _load_data(self):
         self.d_vecs = np.loadtxt(self.d_vecs_path, delimiter=',', dtype=float, comments=None)
         self.d_ecfps = np.loadtxt(self.d_ecfps_path, delimiter=',', dtype=int, comments=None)
-        self.d_sim = np.loadtxt(self.d_sim_path, delimiter='\t', dtype=float, comments=None)
-        self.d_intersect = np.loadtxt(self.d_intersect_path, delimiter=',', dtype=float, comments=None)
+        
+        d_sim_path = self.d_sim_path
+        if self.sim_type != 'default':
+            d_sim_path = './data/kiba/drug_{}.csv'.format(self.sim_type)
+            self.d_sim = np.loadtxt(d_sim_path, delimiter=',', dtype=float, comments=None)
+        else:
+            self.d_sim = np.loadtxt(d_sim_path, delimiter=' ', dtype=float, comments=None)
+        # self.d_intersect = np.loadtxt(self.d_intersect_path, delimiter=',', dtype=float, comments=None)
 
         self.p_gos = pd.read_csv(self.p_gos_path, delimiter=',', header=0, index_col=0).to_numpy(float)
-        self.p_sim = np.loadtxt(self.p_sim_path, delimiter='\t', dtype=float, comments=None)
-        self.p_intersect = np.loadtxt(self.p_intersect_path, delimiter=',', dtype=float, comments=None)
+        p_sim_path = self.p_sim_path
+        if self.sim_type != 'default':
+            p_sim_path = './data/kiba/protein_{}.csv'.format(self.sim_type)
+            self.p_sim = np.loadtxt(p_sim_path, delimiter=',', dtype=float, comments=None)
+        else:
+            self.p_sim = np.loadtxt(p_sim_path, delimiter='\t', dtype=float, comments=None)
+
+        # self.p_intersect = np.loadtxt(self.p_intersect_path, delimiter=',', dtype=float, comments=None)
         self.p_embeddings = pd.read_csv('./data/kiba/protein_embedding.csv', delimiter=',', header=None, index_col=0).to_numpy(float)
 
         self.y = np.loadtxt('./data/kiba/Y.txt', delimiter=',', dtype=float, comments=None)

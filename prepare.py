@@ -161,7 +161,7 @@ def drug_sim(dataType = 'davis'):
     drug_ecfps = np.loadtxt('./data/{}/drug_ecfps.csv'.format(dataType), delimiter=',', dtype=int, comments=None)
     drug_count = drug_ecfps.shape[0]
 
-    intersect = np.zeros((drug_count, drug_count))
+    csi = np.zeros((drug_count, drug_count))
     cosine = np.zeros((drug_count, drug_count))
     pearson = np.zeros((drug_count, drug_count))
     euclidean = np.zeros((drug_count, drug_count))
@@ -171,7 +171,7 @@ def drug_sim(dataType = 'davis'):
         for j in range(drug_count):
             # csi
             inter = np.sum(np.bitwise_and(drug_ecfps[i], drug_ecfps[j]))
-            intersect[i][j] = 1 - ((np.sum(drug_ecfps[j]) - inter) / np.sum(drug_ecfps[j]))
+            csi[i][j] = 1 - ((np.sum(drug_ecfps[j]) - inter) / np.sum(drug_ecfps[j]))
             # cosine
             cosine[i][j] = 1 - distance.cosine(drug_ecfps[i], drug_ecfps[j])
             # pearson
@@ -181,7 +181,7 @@ def drug_sim(dataType = 'davis'):
             # jaccard
             jaccard[i][j] = 1 - distance.jaccard(drug_ecfps[i], drug_ecfps[j])
 
-    np.savetxt('./data/{}/drug_intersect.csv'.format(dataType), intersect, fmt='%s', delimiter=',')
+    np.savetxt('./data/{}/drug_csi.csv'.format(dataType), csi, fmt='%s', delimiter=',')
     np.savetxt('./data/{}/drug_cosine.csv'.format(dataType), cosine, fmt='%s', delimiter=',')
     np.savetxt('./data/{}/drug_pearson.csv'.format(dataType), pearson, fmt='%s', delimiter=',')
     euclidean_max, euclidean_min = euclidean.max(axis=0), euclidean.min(axis=0)
@@ -197,7 +197,7 @@ def protein_sim(dataType = 'davis'):
     protein_go_vectors = np.loadtxt(path, delimiter=',', dtype=int, comments=None, skiprows=1, usecols=range(1,ncols))
     protein_count = protein_go_vectors.shape[0]
 
-    intersect = np.zeros((protein_count, protein_count))
+    csi = np.zeros((protein_count, protein_count))
     cosine = np.zeros((protein_count, protein_count))
     pearson = np.zeros((protein_count, protein_count))
     euclidean = np.zeros((protein_count, protein_count))
@@ -207,7 +207,7 @@ def protein_sim(dataType = 'davis'):
         for j in range(protein_count):
             # csi
             inter = np.sum(np.bitwise_and(protein_go_vectors[i], protein_go_vectors[j]))
-            intersect[i][j] = 1 - ((np.sum(protein_go_vectors[j]) - inter) / np.sum(protein_go_vectors[j]))
+            csi[i][j] = 1 - ((np.sum(protein_go_vectors[j]) - inter) / np.sum(protein_go_vectors[j]))
             # cosine
             cosine[i][j] = 1 - distance.cosine(protein_go_vectors[i], protein_go_vectors[j])
             # pearson
@@ -217,7 +217,7 @@ def protein_sim(dataType = 'davis'):
             # jaccard
             jaccard[i][j] = 1 - distance.jaccard(protein_go_vectors[i], protein_go_vectors[j])
 
-    np.savetxt('./data/{}/protein_intersect.csv'.format(dataType), intersect, fmt='%s', delimiter=',')
+    np.savetxt('./data/{}/protein_csi.csv'.format(dataType), csi, fmt='%s', delimiter=',')
     np.savetxt('./data/{}/protein_cosine.csv'.format(dataType), cosine, fmt='%s', delimiter=',')
     np.savetxt('./data/{}/protein_pearson.csv'.format(dataType), pearson, fmt='%s', delimiter=',')
     euclidean_max, euclidean_min = euclidean.max(axis=0), euclidean.min(axis=0)
@@ -226,6 +226,6 @@ def protein_sim(dataType = 'davis'):
     np.savetxt('./data/{}/protein_jaccard.csv'.format(dataType), jaccard, fmt='%s', delimiter=',')
 
 if __name__=='__main__':
-    dataType = 'davis'
+    dataType = 'kiba'
     drug_sim()
     protein_sim()

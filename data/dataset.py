@@ -18,13 +18,13 @@ handlers = {
 }
 
 class MultiDataset(Dataset):
-    def __init__(self, type = 'kiba', train = True, unit = 0.05, device = 'cpu', new = False):
+    def __init__(self, type = 'kiba', train = True, unit = 0.05, device = 'cpu', sim_type = 'csi', new = False):
         # super().__init__(None, transform, pre_transform) # 无需预处理与下载
         print('initalizing {} {} dataset...'.format(type, 'train' if train else 'test'))
         self.device = device
         self.train = train
         self.new = new
-        self.handler = handlers[type](self.train)
+        self.handler = handlers[type](self.train, sim_type)
 
         self._check_exists()
         self.handler._load_data()
@@ -32,13 +32,13 @@ class MultiDataset(Dataset):
         self.d_vecs = torch.tensor(self.handler.d_vecs, dtype=torch.float32, device=self.device)
         self.d_ecfps = torch.tensor(self.handler.d_ecfps, dtype=torch.float32, device=self.device)
         self.d_sim = torch.tensor(self.handler.d_sim, dtype=torch.float32, device=self.device)
-        self.d_intersect = self.handler.d_intersect
+        # self.d_intersect = self.handler.d_intersect
 
         self.p_gos = torch.tensor(self.handler.p_gos, dtype=torch.float32, device=self.device)
         self.p_gos_dim = self.p_gos.size()[1]
         self.p_sim = torch.tensor(self.handler.p_sim, dtype=torch.float32, device=self.device)
         self.p_embeddings = torch.tensor(self.handler.p_embeddings, dtype=torch.float32, device=self.device)
-        self.p_intersect = self.handler.p_intersect
+        # self.p_intersect = self.handler.p_intersect
 
         self.dsize = self.d_sim.size()[0]
         self.psize = self.p_sim.size()[0]
@@ -68,9 +68,9 @@ class MultiDataset(Dataset):
 
             self.classes = torch.tensor(classes, dtype=torch.long, device=self.device)
 
-        print('generating intersect graph...')
-        self.d_inter_ei, self.d_inter_ew = self._graph_gen(self.dsize, self.d_intersect, 5)
-        self.p_inter_ei, self.p_inter_ew = self._graph_gen(self.psize, self.p_intersect, 5, 0.8)
+        # print('generating intersect graph...')
+        # self.d_inter_ei, self.d_inter_ew = self._graph_gen(self.dsize, self.d_intersect, 5)
+        # self.p_inter_ei, self.p_inter_ew = self._graph_gen(self.psize, self.p_intersect, 5, 0.8)
         print('generating similarity graph...')
         self.d_sim_ei, self.d_sim_ew = self._graph_gen(
             self.dsize, self.d_sim, self.handler.sim_neighbor_num, self.handler.sim_threshold
@@ -142,28 +142,28 @@ class MultiDataset(Dataset):
 
             np.savetxt(self.handler.d_vecs_path, features, fmt='%s', delimiter=',')
         
-        if not os.path.exists(self.handler.d_intersect_path):
-            print('generating drug intersect...')
-            drug_ecfps = np.loadtxt(self.handler.d_ecfps_path, delimiter=',', dtype=int, comments=None)
-            drug_count = drug_ecfps.shape[0]
-            matrix = np.zeros((drug_count, drug_count))
+        # if not os.path.exists(self.handler.d_intersect_path):
+        #     print('generating drug intersect...')
+        #     drug_ecfps = np.loadtxt(self.handler.d_ecfps_path, delimiter=',', dtype=int, comments=None)
+        #     drug_count = drug_ecfps.shape[0]
+        #     matrix = np.zeros((drug_count, drug_count))
 
-            for i in range(drug_count):
-                for j in range(drug_count):
-                    # i可以收集j中的信息的权重比率
-                    inter = np.sum(np.bitwise_and(drug_ecfps[i], drug_ecfps[j]))
-                    matrix[i][j] = round(1 - ((np.sum(drug_ecfps[j]) - inter) / np.sum(drug_ecfps[j])), 6)
-            np.savetxt(self.handler.d_intersect_path, matrix, fmt='%s', delimiter=',')
+        #     for i in range(drug_count):
+        #         for j in range(drug_count):
+        #             # i可以收集j中的信息的权重比率
+        #             inter = np.sum(np.bitwise_and(drug_ecfps[i], drug_ecfps[j]))
+        #             matrix[i][j] = round(1 - ((np.sum(drug_ecfps[j]) - inter) / np.sum(drug_ecfps[j])), 6)
+        #     np.savetxt(self.handler.d_intersect_path, matrix, fmt='%s', delimiter=',')
         
-        if not os.path.exists(self.handler.p_intersect_path):
-            print('generating protein intersect...')
-            p_gos = pd.read_csv(self.handler.p_gos_path, delimiter=',', header=0, index_col=0).to_numpy(int)
-            protein_count = p_gos.shape[0]
-            matrix = np.zeros((protein_count, protein_count))
+        # if not os.path.exists(self.handler.p_intersect_path):
+        #     print('generating protein intersect...')
+        #     p_gos = pd.read_csv(self.handler.p_gos_path, delimiter=',', header=0, index_col=0).to_numpy(int)
+        #     protein_count = p_gos.shape[0]
+        #     matrix = np.zeros((protein_count, protein_count))
 
-            for i in range(protein_count):
-                for j in range(protein_count):
-                    # i可以收集j中的信息的权重比率
-                    inter = np.sum(np.bitwise_and(p_gos[i], p_gos[j]))
-                    matrix[i][j] = round(1 - ((np.sum(p_gos[j]) - inter) / np.sum(p_gos[j])), 6)
-            np.savetxt(self.handler.p_intersect_path, matrix, fmt='%s', delimiter=',')
+        #     for i in range(protein_count):
+        #         for j in range(protein_count):
+        #             # i可以收集j中的信息的权重比率
+        #             inter = np.sum(np.bitwise_and(p_gos[i], p_gos[j]))
+        #             matrix[i][j] = round(1 - ((np.sum(p_gos[j]) - inter) / np.sum(p_gos[j])), 6)
+        #     np.savetxt(self.handler.p_intersect_path, matrix, fmt='%s', delimiter=',')
