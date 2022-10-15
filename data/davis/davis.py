@@ -7,9 +7,9 @@ class Davis:
     def __init__(self, train=True, sim_type='csi'):
         self.train = train
         self.sim_type = sim_type
-        self.dropout = 0.0
         self.sim_neighbor_num = 5
-        self.sim_threshold = 0.6
+        self.d_threshold = 0.6
+        self.p_threshold = 0.6
 
         self.ligands_path = './data/davis/ligands_can.json'
         self.d_ecfps_path = './data/davis/drug_ecfps.csv'

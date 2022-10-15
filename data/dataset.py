@@ -43,7 +43,6 @@ class MultiDataset(Dataset):
         self.dsize = self.d_sim.size()[0]
         self.psize = self.p_sim.size()[0]
 
-        self.dropout = self.handler.dropout
         y = self.handler.y
         drugs = self.handler.drugs
         proteins = self.handler.proteins
@@ -73,10 +72,10 @@ class MultiDataset(Dataset):
         # self.p_inter_ei, self.p_inter_ew = self._graph_gen(self.psize, self.p_intersect, 5, 0.8)
         print('generating similarity graph...')
         self.d_sim_ei, self.d_sim_ew = self._graph_gen(
-            self.dsize, self.d_sim, self.handler.sim_neighbor_num, self.handler.sim_threshold
+            self.dsize, self.d_sim, self.handler.sim_neighbor_num, self.handler.d_threshold
         )
         self.p_sim_ei, self.p_sim_ew = self._graph_gen(
-            self.psize, self.p_sim, self.handler.sim_neighbor_num, self.handler.sim_threshold
+            self.psize, self.p_sim, self.handler.sim_neighbor_num, self.handler.p_threshold
         )
 
         self.indexes = torch.tensor(indexes, dtype=torch.long, device=self.device)

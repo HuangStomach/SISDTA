@@ -8,3 +8,13 @@ Namespace(device='cuda:0', epochs=1000, dataset='davis', batch_size=512, learnin
 
 Epoch: 1000 train loss: 1.533265 train mse: 0.018550 test mse: 0.184830 ci: 0.910737 rm2: 0.765061
 Namespace(device='cuda:0', epochs=1000, dataset='davis', batch_size=512, learning_rate=0.0005, lambda_1=1e-05, lambda_2=1, dsim=1, dcsi=1, psim=1, pcsi=1, weight_decay=0.0, unit=0.1)
+
+## single
+Epoch: 1000 train loss: 2.516984 train mse: 0.025031 test mse: 0.217635 ci: 0.887968 rm2: 0.704995
+Namespace(device='cuda:0', epochs=1000, dataset='davis', batch_size=512, learning_rate=0.001, lambda_1=1e-05, lambda_2=1, sim_type='csi', weight_decay=0.0, unit=0.1)
+Epoch: 1000 train loss: 2.589002 train mse: 0.033913 test mse: 0.218491 ci: 0.896604 rm2: 0.721421
+Namespace(device='cuda:0', epochs=1000, dataset='davis', batch_size=512, learning_rate=0.001, lambda_1=1e-05, lambda_2=1, sim_type='cosine', weight_decay=0.0, unit=0.1)
+Epoch: 1000 train loss: 2.488187 train mse: 0.024911 test mse: 0.218114 ci: 0.895273 rm2: 0.704149
+Namespace(device='cuda:0', epochs=1000, dataset='davis', batch_size=512, learning_rate=0.001, lambda_1=1e-05, lambda_2=1, sim_type='pearson', weight_decay=0.0, unit=0.1)
+Epoch: 1000 train loss: 2.465836 train mse: 0.020094 test mse: 0.240453 ci: 0.892050 rm2: 0.674781
+Namespace(device='cuda:0', epochs=1000, dataset='davis', batch_size=512, learning_rate=0.001, lambda_1=1e-05, lambda_2=1, sim_type='euclidean', weight_decay=0.0, unit=0.1)
