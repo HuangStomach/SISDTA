@@ -227,5 +227,5 @@ def protein_sim(dataType = 'davis'):
 
 if __name__=='__main__':
     dataType = 'kiba'
-    drug_sim()
-    protein_sim()
+    drug_sim(dataType)
+    protein_sim(dataType)
