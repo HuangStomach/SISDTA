@@ -1,8 +1,8 @@
-train mse: 0.004431 test mse: 0.123472
-Namespace(batch_size=512, dataset='kiba', device='cuda:0', epochs=1000, lambda_1=1e-05, lambda_2=1, learning_rate=0.002, unit=0.1, weight_decay=0.0)
-train mse: 0.003523 test mse: 0.123333
-Namespace(batch_size=512, dataset='kiba', device='cuda:0', epochs=1000, lambda_1=1e-05, lambda_2=1, learning_rate=0.002, unit=0.1, weight_decay=0.0)
+Epoch: 950 train loss: 1.812903 train mse: 0.002354 test mse: 0.122538 ci: 0.900682 rm2: 0.816262
+Namespace(device='cuda:0', epochs=1000, dataset='kiba', batch_size=512, learning_rate=0.002, lambda_1=1e-05, lambda_2=1, sim_type='csi', weight_decay=0.0, unit=0.1)
 
-Epoch: 990 train loss: 1.165484 train mse: 0.001212 test mse: 0.126656 ci: 0.900700 rm2: 0.809978
-train mse: 0.006500 test mse: 0.126656
-Namespace(device='cuda:0', epochs=1000, dataset='kiba', batch_size=512, learning_rate=0.004, lambda_1=1e-05, lambda_2=1, weight_decay=0.0, unit=0.1)
+Epoch: 990 train loss: 1.916137 train mse: 0.003763 test mse: 0.126998 ci: 0.895066 rm2: 0.804931
+Namespace(device='cuda:0', epochs=1000, dataset='kiba', batch_size=512, learning_rate=0.002, lambda_1=1e-05, lambda_2=1, sim_type='cosine', weight_decay=0.0, unit=0.1)
+
+Epoch: 980 train loss: 1.955123 train mse: 0.002499 test mse: 0.125868 ci: 0.897473 rm2: 0.809696
+Namespace(device='cuda:0', epochs=1000, dataset='kiba', batch_size=512, learning_rate=0.002, lambda_1=1e-05, lambda_2=1, sim_type='pearson', weight_decay=0.0, unit=0.1)
