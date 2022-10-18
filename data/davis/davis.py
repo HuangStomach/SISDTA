@@ -29,7 +29,7 @@ class Davis:
             d_sim_path = './data/davis/drug_{}.csv'.format(self.sim_type)
             self.d_sim = np.loadtxt(d_sim_path, delimiter=',', dtype=float, comments=None)
         else:
-            self.d_sim = np.loadtxt(d_sim_path, delimiter=' ', dtype=float, comments=None)
+            self.d_sim = np.loadtxt(d_sim_path, delimiter='\t', dtype=float, comments=None)
 
         # self.d_intersect = np.loadtxt(self.d_intersect_path, delimiter=',', dtype=float, comments=None)
 

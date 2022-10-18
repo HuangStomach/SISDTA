@@ -28,7 +28,7 @@ class Kiba:
             d_sim_path = './data/kiba/drug_{}.csv'.format(self.sim_type)
             self.d_sim = np.loadtxt(d_sim_path, delimiter=',', dtype=float, comments=None)
         else:
-            self.d_sim = np.loadtxt(d_sim_path, delimiter=' ', dtype=float, comments=None)
+            self.d_sim = np.loadtxt(d_sim_path, delimiter='\t', dtype=float, comments=None)
         # self.d_intersect = np.loadtxt(self.d_intersect_path, delimiter=',', dtype=float, comments=None)
 
         self.p_gos = pd.read_csv(self.p_gos_path, delimiter=',', header=0, index_col=0).to_numpy(float)
