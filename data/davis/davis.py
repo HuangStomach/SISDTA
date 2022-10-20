@@ -29,20 +29,14 @@ class Davis:
             d_sim_path = './data/davis/drug_{}.csv'.format(self.sim_type)
             self.d_sim = np.loadtxt(d_sim_path, delimiter=',', dtype=float, comments=None)
         else:
-            self.d_sim = np.loadtxt(d_sim_path, delimiter='\t', dtype=float, comments=None)
+            self.d_sim = np.loadtxt(d_sim_path, delimiter=' ', dtype=float, comments=None)
 
         # self.d_intersect = np.loadtxt(self.d_intersect_path, delimiter=',', dtype=float, comments=None)
 
         self.p_gos = pd.read_csv(self.p_gos_path, delimiter=',', header=0, index_col=0).to_numpy(float)
-
-        p_sim_path = self.p_sim_path
-        if self.sim_type != 'default':
-            p_sim_path = './data/davis/protein_{}.csv'.format(self.sim_type)
-            self.p_sim = np.loadtxt(p_sim_path, delimiter=',', dtype=float, comments=None)
-        else:
-            p_sim = np.loadtxt(p_sim_path, delimiter=' ', dtype=float, comments=None)
-            p_max, p_min = p_sim.max(axis=0), p_sim.min(axis=0)
-            self.p_sim = (p_sim - p_min) / (p_max - p_min)
+        p_sim = np.loadtxt(self.p_sim_path, delimiter=' ', dtype=float, comments=None)
+        p_max, p_min = p_sim.max(axis=0), p_sim.min(axis=0)
+        self.p_sim = (p_sim - p_min) / (p_max - p_min)
 
         self.p_intersect = np.loadtxt(
             self.p_intersect_path, delimiter=',', dtype=float, comments=None)

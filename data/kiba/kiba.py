@@ -32,12 +32,7 @@ class Kiba:
         # self.d_intersect = np.loadtxt(self.d_intersect_path, delimiter=',', dtype=float, comments=None)
 
         self.p_gos = pd.read_csv(self.p_gos_path, delimiter=',', header=0, index_col=0).to_numpy(float)
-        p_sim_path = self.p_sim_path
-        if self.sim_type != 'default':
-            p_sim_path = './data/kiba/protein_{}.csv'.format(self.sim_type)
-            self.p_sim = np.loadtxt(p_sim_path, delimiter=',', dtype=float, comments=None)
-        else:
-            self.p_sim = np.loadtxt(p_sim_path, delimiter='\t', dtype=float, comments=None)
+        self.p_sim = np.loadtxt(self.p_sim_path, delimiter='\t', dtype=float, comments=None)
 
         # self.p_intersect = np.loadtxt(self.p_intersect_path, delimiter=',', dtype=float, comments=None)
         self.p_embeddings = pd.read_csv('./data/kiba/protein_embedding.csv', delimiter=',', header=None, index_col=0).to_numpy(float)
