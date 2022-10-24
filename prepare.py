@@ -12,7 +12,6 @@ from rdkit.Chem import AllChem
 import gc
 import re
 
-
 def protein_seq():
     DTI = pd.read_csv('./data/DTI.csv')
     seqs = np.loadtxt('./data/protein/proteins.csv', dtype=str)
@@ -189,41 +188,17 @@ def drug_sim(dataType = 'davis'):
     np.savetxt('./data/{}/drug_euclidean.csv'.format(dataType), euclidean, fmt='%s', delimiter=',')
     np.savetxt('./data/{}/drug_jaccard.csv'.format(dataType), jaccard, fmt='%s', delimiter=',')
 
-def protein_sim(dataType = 'davis'):
-    path = './data/{}/protein_go_vector.csv'.format(dataType)
-    with open(path) as f:
-        ncols = len(f.readline().split(','))
-
-    protein_go_vectors = np.loadtxt(path, delimiter=',', dtype=int, comments=None, skiprows=1, usecols=range(1,ncols))
-    protein_count = protein_go_vectors.shape[0]
-
-    csi = np.zeros((protein_count, protein_count))
-    cosine = np.zeros((protein_count, protein_count))
-    pearson = np.zeros((protein_count, protein_count))
-    euclidean = np.zeros((protein_count, protein_count))
-    jaccard = np.zeros((protein_count, protein_count))
-
-    for i in range(protein_count):
-        for j in range(protein_count):
-            # csi
-            inter = np.sum(np.bitwise_and(protein_go_vectors[i], protein_go_vectors[j]))
-            csi[i][j] = 1 - ((np.sum(protein_go_vectors[j]) - inter) / np.sum(protein_go_vectors[j]))
-            # cosine
-            cosine[i][j] = 1 - distance.cosine(protein_go_vectors[i], protein_go_vectors[j])
-            # pearson
-            pearson[i][j] = 1 - distance.correlation(protein_go_vectors[i], protein_go_vectors[j])
-            # euclidean
-            euclidean[i][j] = distance.euclidean(protein_go_vectors[i], protein_go_vectors[j])
-            # jaccard
-            jaccard[i][j] = 1 - distance.jaccard(protein_go_vectors[i], protein_go_vectors[j])
-
-    np.savetxt('./data/{}/protein_csi.csv'.format(dataType), csi, fmt='%s', delimiter=',')
-    np.savetxt('./data/{}/protein_cosine.csv'.format(dataType), cosine, fmt='%s', delimiter=',')
-    np.savetxt('./data/{}/protein_pearson.csv'.format(dataType), pearson, fmt='%s', delimiter=',')
-    euclidean_max, euclidean_min = euclidean.max(axis=0), euclidean.min(axis=0)
-    euclidean = 1 - ((euclidean - euclidean_min) / (euclidean_max - euclidean_min))
-    np.savetxt('./data/{}/protein_euclidean.csv'.format(dataType), euclidean, fmt='%s', delimiter=',')
-    np.savetxt('./data/{}/protein_jaccard.csv'.format(dataType), jaccard, fmt='%s', delimiter=',')
+def tanimoto_coefficient(p_vec, q_vec):
+    """
+    This method implements the cosine tanimoto coefficient metric
+    :param p_vec: vector one
+    :param q_vec: vector two
+    :return: the tanimoto coefficient between vector one and two
+    """
+    pq = np.dot(p_vec, q_vec)
+    p_square = np.linalg.norm(p_vec)
+    q_square = np.linalg.norm(q_vec)
+    return pq / (p_square + q_square - pq)
 
 if __name__=='__main__':
     dataType = 'kiba'
