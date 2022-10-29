@@ -1,4 +1,4 @@
-Epoch: 940 train loss: 2.515816 train mse: 0.038066 test mse: 0.190917 ci: 0.905300 rm2: 0.751756
+Epoch: 1000 train loss: 2.509748 train mse: 0.037644 test mse: 0.191055 ci: 0.906936 rm2: 0.757353
 Namespace(device='cuda:0', epochs=1000, dataset='davis', batch_size=512, learning_rate=0.001, lambda_1=1e-05, lambda_2=1, sim_type='csi', weight_decay=0.0, unit=0.1)
 Epoch: 1000 train loss: 2.421134 train mse: 0.039012 test mse: 0.193715 ci: 0.904726 rm2: 0.734618
 Namespace(device='cuda:0', epochs=1000, dataset='davis', batch_size=512, learning_rate=0.001, lambda_1=1e-05, lambda_2=1, sim_type='cosine', weight_decay=0.0, unit=0.1)
