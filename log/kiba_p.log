@@ -1,32 +1,24 @@
-15.075648 tensor(540) tensor(57) 8.7
+15.193962 CHEMBL1999414 Q9Y4K4 https://pubchem.ncbi.nlm.nih.gov/bioassay/493040
+15.237349 CHEMBL1999414 P09619 https://pubchem.ncbi.nlm.nih.gov/bioassay/493040
+15.271584 CHEMBL1970317 P17948 https://pubchem.ncbi.nlm.nih.gov/bioassay/493040
+15.46497 CHEMBL1980562 O00311 https://pubchem.ncbi.nlm.nih.gov/bioassay/493040
+15.107645 CHEMBL2004290 P17948 https://pubchem.ncbi.nlm.nih.gov/bioassay/1257944 8.7 
+15.400394 CHEMBL249097 P07947 https://pubchem.ncbi.nlm.nih.gov/bioassay/389065,https://pubchem.ncbi.nlm.nih.gov/bioassay/390013
+15.300045 CHEMBL2001239 P17948 https://pubchem.ncbi.nlm.nih.gov/bioassay/493040
+15.494911 CHEMBL273187 P36888 https://pubchem.ncbi.nlm.nih.gov/bioassay/493040
+15.196129 CHEMBL1241676 P08631 https://pubchem.ncbi.nlm.nih.gov/bioassay/507080
+15.141367 CHEMBL478629 P36888 https://pubchem.ncbi.nlm.nih.gov/bioassay/527867,https://pubchem.ncbi.nlm.nih.gov/bioassay/720165
+15.328766 CHEMBL1969151 O00311 https://pubchem.ncbi.nlm.nih.gov/bioassay/673702
+15.343649 CHEMBL2000652 P17948 https://pubchem.ncbi.nlm.nih.gov/bioassay/493040
+15.334454 CHEMBL1996510 Q04759 https://pubchem.ncbi.nlm.nih.gov/bioassay/690003
+15.031788 CHEMBL1980904 P17948 https://pubchem.ncbi.nlm.nih.gov/bioassay/493040
+15.090605 CHEMBL1964441 P17948 https://pubchem.ncbi.nlm.nih.gov/bioassay/493040
+15.327454 CHEMBL523586 Q9Y243 https://pubchem.ncbi.nlm.nih.gov/bioassay/417621
+15.037329 CHEMBL1980995 Q04912 无
+15.065578 CHEMBL178737 P49841 https://pubchem.ncbi.nlm.nih.gov/bioassay/241844,https://pubchem.ncbi.nlm.nih.gov/bioassay/241157,https://pubchem.ncbi.nlm.nih.gov/bioassay/482492,https://pubchem.ncbi.nlm.nih.gov/bioassay/248695,https://pubchem.ncbi.nlm.nih.gov/bioassay/242597
+15.768671 CHEMBL403402 P17948 https://pubchem.ncbi.nlm.nih.gov/bioassay/493040
+15.803705 CHEMBL1994638 P17948 https://pubchem.ncbi.nlm.nih.gov/bioassay/493040
+15.241137 CHEMBL2003638 O00311 https://pubchem.ncbi.nlm.nih.gov/bioassay/1342899,https://pubchem.ncbi.nlm.nih.gov/bioassay/1342900
+
 14.539276 tensor(1148) tensor(81) 8.7
 14.255806 tensor(547) tensor(81) 8.3
-14.034603 tensor(414) tensor(173)
-14.119696 tensor(1158) tensor(173)
-14.138478 tensor(460) tensor(188)
-14.299966 tensor(1036) tensor(188)
-14.3437 tensor(145) tensor(188)
-14.07916 tensor(1076) tensor(188)
-14.244899 tensor(1001) tensor(57)
-14.004568 tensor(498) tensor(76)
-14.08161 tensor(639) tensor(76)
-14.171451 tensor(317) tensor(33)
-14.293983 tensor(843) tensor(222)
-14.137964 tensor(1015) tensor(126)
-14.041695 tensor(445) tensor(21)
-14.019344 tensor(141) tensor(14)
-14.3108 tensor(560) tensor(163)
-14.421982 tensor(354) tensor(163)
-14.017722 tensor(1554) tensor(129)
-14.007534 tensor(143) tensor(113)
-14.178766 tensor(442) tensor(113)
-14.914612 tensor(843) tensor(138)
-14.031696 tensor(193) tensor(7)
-14.222351 tensor(560) tensor(157)
-14.078229 tensor(521) tensor(41)
-14.565229 tensor(1480) tensor(147)
-14.067816 tensor(147) tensor(12)
-14.015805 tensor(521) tensor(38)
-14.242427 tensor(1620) tensor(213)
-14.319601 tensor(1022) tensor(124)
-14.002826 tensor(743) tensor(2)

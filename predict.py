@@ -13,22 +13,14 @@ if __name__ ==  '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--device', default='cpu', type=str, metavar='string')
     parser.add_argument('-d', '--dataset', default='kiba', type=str, metavar='string')
-    parser.add_argument('--dsim', default=1, type=int, metavar='int')
-    parser.add_argument('--dcsi',  default=1, type=int, metavar='int')
-    parser.add_argument('--psim', default=1, type=int, metavar='int')
-    parser.add_argument('--pcsi',  default=1, type=int, metavar='int')
+    parser.add_argument('--sim-type', default='csi', type=str, metavar='string')
     args = parser.parse_args()
 
-    dataset = MultiDataset(args.dataset, train=False, device=args.device, new=True)
+    dataset = MultiDataset(args.dataset, train=False, device=args.device, new=True, sim_type=args.sim_type)
     loader = DataLoader(dataset, batch_size=1024)
 
-    model = FC(dataset.p_gos_dim, args.dsim, args.dcsi, args.psim, args.pcsi).to(args.device)
-    path = "./output/{}".format(args.dataset)
-    prefix = ""
-    if args.dsim: prefix += "_sim"
-    if args.dcsi: prefix += "_csi"
-    if not args.dsim and not args.dcsi: prefix += "_none"
-    path = path + prefix + "_model.pt"
+    model = FC(dataset.p_gos_dim).to(args.device)
+    path = "./output/{}_model.pt".format(args.dataset)
     model_state_dict = torch.load(path, map_location=torch.device(args.device))
     model.load_state_dict(model_state_dict)
     model.eval()
