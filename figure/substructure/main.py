@@ -4,7 +4,7 @@ from rdkit.Chem import Draw
 
 from cairosvg import svg2png
 
-mol = Chem.MolFromSmiles('OC1CCCCC1')
+mol = Chem.MolFromSmiles('OC1=CC=CC=C1')
 img = Draw.MolToImage(mol, size=(600, 600))
 img.save('./Phenol.png')
 
@@ -17,7 +17,7 @@ for i in info:
     print('benfen', i)
     svg2png(bytestring=img, write_to='./output_{}.png'.format(i))
 
-mol = Chem.MolFromSmiles('C1CCCCC1')
+mol = Chem.MolFromSmiles('C1=CC=CC=C1')
 img = Draw.MolToImage(mol, size=(600, 600))
 img.save('./Benzene.png')
 info = {}
