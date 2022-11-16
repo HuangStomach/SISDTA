@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="zh-CN" style="height: 100%">
+
+<head>
+  <meta charset="utf-8">
+</head>
+
+<body style="height: 100%; margin: 0">
+  <div id="container" style="height: 100%"></div>
+  <script src="https://fastly.jsdelivr.net/npm/echarts@5.3.3/dist/echarts.min.js"></script>
+  <script>
+    let dom = document.getElementById('container');
+    const myChart = echarts.init(dom, null, {
+      renderer: 'canvas',
+      useDirtyRect: false
+    });
+    const option = {
+      series: [
+        {
+          type: 'graph',
+          layout: 'none',
+          symbolSize: 50,
+          roam: true,
+          label: {
+            show: true
+          },
+          data: [
+            {
+              name: "CHEMBL206783",
+              x: -20,
+              y: -20,
+              category: 0,
+            }, {
+              name: "CHEMBL206955",
+              x: 15,
+              y: 15,
+              category: 1,
+            }, {
+              name: "CHEMBL207037",
+              x: 20,
+              y: -20,
+              category: 2,
+            }, {
+              name: "CHEMBL207130",
+              x: -20,
+              y: 20,
+              category: 3,
+            }, {
+              name: "CHEMBL207235",
+              x: -5,
+              y: -5,
+              category: 4,
+            }, {
+              name: "CHEMBL207246",
+              x: 10,
+              y: 0,
+              category: 5,
+            }
+          ],
+          links: [
+            {"source": "CHEMBL207130", "target": "CHEMBL206783"}, {"source": "CHEMBL207246", "target": "CHEMBL206783"}, {"source": "CHEMBL207235", "target": "CHEMBL206783"}, {"source": "CHEMBL207037", "target": "CHEMBL206783"}, {"source": "CHEMBL206955", "target": "CHEMBL206783"}, {"source": "CHEMBL207235", "target": "CHEMBL206955"}, {"source": "CHEMBL207246", "target": "CHEMBL206955"}, {"source": "CHEMBL207037", "target": "CHEMBL206955"}, {"source": "CHEMBL206783", "target": "CHEMBL206955"}, {"source": "CHEMBL207130", "target": "CHEMBL206955"}, {"source": "CHEMBL207235", "target": "CHEMBL207037"}, {"source": "CHEMBL207246", "target": "CHEMBL207037"}, {"source": "CHEMBL206783", "target": "CHEMBL207037"}, {"source": "CHEMBL206955", "target": "CHEMBL207037"}, {"source": "CHEMBL207130", "target": "CHEMBL207037"}, {"source": "CHEMBL206783", "target": "CHEMBL207130"}, {"source": "CHEMBL207246", "target": "CHEMBL207130"}, {"source": "CHEMBL207235", "target": "CHEMBL207130"}, {"source": "CHEMBL207037", "target": "CHEMBL207130"}, {"source": "CHEMBL206955", "target": "CHEMBL207130"}, {"source": "CHEMBL207246", "target": "CHEMBL207235"}, {"source": "CHEMBL207037", "target": "CHEMBL207235"}, {"source": "CHEMBL206955", "target": "CHEMBL207235"}, {"source": "CHEMBL206783", "target": "CHEMBL207235"}, {"source": "CHEMBL207130", "target": "CHEMBL207235"}, {"source": "CHEMBL207235", "target": "CHEMBL207246"}, {"source": "CHEMBL206783", "target": "CHEMBL207246"}, {"source": "CHEMBL207130", "target": "CHEMBL207246"}, {"source": "CHEMBL207037", "target": "CHEMBL207246"}, {"source": "CHEMBL206955", "target": "CHEMBL207246"}
+          ],
+          lineStyle: {
+            opacity: 0.9,
+            width: 2,
+            curveness: 0
+          },
+          categories: [
+            {
+              name: "CHEMBL206783"
+            },
+            {
+              name: "CHEMBL206955"
+            },
+            {
+              name: "CHEMBL207037"
+            },
+            {
+              name: "CHEMBL207130"
+            },
+            {
+              name: "CHEMBL207235"
+            },
+            {
+              name: "CHEMBL207246"
+            },
+          ]
+        }
+      ]
+    };
+
+    myChart.setOption(option);
+    window.addEventListener('resize', myChart.resize);
+  </script>
+</body>
+
+</html>
