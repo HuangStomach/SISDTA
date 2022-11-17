@@ -15,6 +15,14 @@
       useDirtyRect: false
     });
     const option = {
+      toolbox: {
+        show: true,
+        feature: {
+          dataView: { readOnly: false },
+          restore: {},
+          saveAsImage: {}
+        }
+      },
       series: [
         {
           type: 'graph',
