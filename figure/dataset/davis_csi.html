@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="zh-CN" style="height: 100%">
+
+<head>
+  <meta charset="utf-8">
+</head>
+
+<body style="height: 100%; margin: 0">
+  <div id="container" style="height: 100%"></div>
+  <script src="https://fastly.jsdelivr.net/npm/echarts@5.3.3/dist/echarts.min.js"></script>
+  <script src="./davis_csi.js"></script>
+  <script src="./davis_tanimoto.js"></script>
+  <script>
+    let dom = document.getElementById('container');
+    const myChart = echarts.init(dom, null, {
+      renderer: 'canvas',
+      useDirtyRect: false
+    });
+
+    const len = csi_raw.length;
+    const csi_data = []
+    const tanimoto_data = []
+    for (let i = 0; i < len; i++) {
+      for (let j = 0; j < len; j++) {
+        csi_data.push([len - i - 1, j, csi_raw[i][j]]);
+        tanimoto_data.push([len - i - 1, j, tanimoto_raw[i][j]]);
+      }
+    }
+
+    option = {
+      toolbox: {
+        show: true,
+        feature: {
+          dataView: { readOnly: false },
+          restore: {},
+          saveAsImage: {}
+        }
+      },
+      grid: [
+        { right: '51%', height: '70%', },
+        { left: '51%', height: '70%', }
+      ],
+      xAxis: [{
+        type: 'category',
+        data: Array(len),
+        gridIndex: 0,
+        show: false,
+      },{
+        type: 'category',
+        data: Array(len),
+        gridIndex: 1,
+        show: false,
+      }],
+      yAxis: [{
+        type: 'category',
+        data: Array(len),
+        gridIndex: 0,
+        show: false,
+      },{
+        type: 'category',
+        data: Array(len),
+        gridIndex: 1,
+        show: false,
+      }],
+      visualMap: [{
+        min: 0,
+        max: 1,
+        calculable: true,
+        seriesIndex: [0, 1],
+        orient: 'horizontal',
+        left: 'center',
+        bottom: '15%'
+      }],
+      series: [
+        {
+          type: 'heatmap',
+          xAxisIndex: 0,
+          yAxisIndex: 0,
+          data: csi_data,
+        },
+
+        {
+          type: 'heatmap',
+          xAxisIndex: 1,
+          yAxisIndex: 1,
+          data: tanimoto_data,
+        }
+      ]
+    };
+
+    myChart.setOption(option);
+    window.addEventListener('resize', myChart.resize);
+  </script>
+</body>
+
+</html>
