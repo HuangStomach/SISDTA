@@ -21,6 +21,7 @@ class MultiDataset(Dataset):
     def __init__(self, type = 'kiba', train = True, unit = 0.05, device = 'cpu', sim_type = 'csi', new = False):
         # super().__init__(None, transform, pre_transform) # 无需预处理与下载
         print('initalizing {} {} dataset...'.format(type, 'train' if train else 'test'))
+        self.type = type
         self.device = device
         self.train = train
         self.new = new
