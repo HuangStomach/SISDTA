@@ -10,6 +10,8 @@
   <script src="https://fastly.jsdelivr.net/npm/echarts@5.3.3/dist/echarts.min.js"></script>
   <script src="./davis_csi.js"></script>
   <script src="./davis_tanimoto.js"></script>
+  <script src="./kiba_csi.js"></script>
+  <script src="./kiba_tanimoto.js"></script>
   <script>
     let dom = document.getElementById('container');
     const myChart = echarts.init(dom, null, {
@@ -17,13 +19,35 @@
       useDirtyRect: false
     });
 
-    const len = csi_raw.length;
-    const csi_data = []
-    const tanimoto_data = []
+    const len = 20;
+    const davis_csi_data = []
+    const davis_tanimoto_data = []
+    const kiba_csi_data = []
+    const kiba_tanimoto_data = []
     for (let i = 0; i < len; i++) {
       for (let j = 0; j < len; j++) {
-        csi_data.push([len - i - 1, j, csi_raw[i][j]]);
-        tanimoto_data.push([len - i - 1, j, tanimoto_raw[i][j]]);
+        davis_csi_data.push([i, len - j - 1, davis_csi_raw[i][j]]);
+        davis_tanimoto_data.push([i, len - j - 1, davis_tanimoto_raw[i][j]]);
+        kiba_csi_data.push([i, len - j - 1, kiba_csi_raw[i][j]]);
+        kiba_tanimoto_data.push([i, len - j - 1, j, kiba_tanimoto_raw[i][j]]);
+      }
+    }
+
+    xAxis = (gridIndex, name, gridId) => {
+      return {
+        type: 'category',
+        data: Array(len),
+        gridIndex,
+        axisLine: { show: false },
+        axisTick: { show: false },
+        axisLabel: { show: false },
+        show: true,
+        name, 
+        nameTextStyle: {
+          fontWeight: 'bold', fontSize: 18,
+        }, 
+        nameLocation: 'middle', 
+        gridId,
       }
     }
 
@@ -37,20 +61,17 @@
         }
       },
       grid: [
-        { right: '51%', height: '70%', },
-        { left: '51%', height: '70%', }
+        { id: 'topleft', left: '7%', top:'2%', width: '40%', height: '40%' },
+        { id: 'topright', right: '7%', top:'2%', width: '40%', height: '40%' },
+        { id: 'bottomleft', left: '7%', bottom:'7%', width: '40%', height: '40%' },
+        { id: 'bottomright', right: '7%', bottom:'7%', width: '40%', height: '40%' },
       ],
-      xAxis: [{
-        type: 'category',
-        data: Array(len),
-        gridIndex: 0,
-        show: false,
-      },{
-        type: 'category',
-        data: Array(len),
-        gridIndex: 1,
-        show: false,
-      }],
+      xAxis: [
+        xAxis(0, 'csi similarity matrix of Davis', 'topleft'),
+        xAxis(1, 'tanimoto similarity matrix of Davis', 'topright'),
+        xAxis(2, 'csi similarity matrix of KIBA', 'bottomleft'),
+        xAxis(3, 'tanimoto similarity matrix of KIBA', 'bottomright'),
+      ],
       yAxis: [{
         type: 'category',
         data: Array(len),
@@ -61,29 +82,53 @@
         data: Array(len),
         gridIndex: 1,
         show: false,
+      },{
+        type: 'category',
+        data: Array(len),
+        gridIndex: 2,
+        show: false,
+      },{
+        type: 'category',
+        data: Array(len),
+        gridIndex: 3,
+        show: false,
       }],
       visualMap: [{
         min: 0,
         max: 1,
         calculable: true,
-        seriesIndex: [0, 1],
-        orient: 'horizontal',
-        left: 'center',
-        bottom: '15%'
+        seriesIndex: [0, 1, 2, 3],
+        orient: 'vertical',
+        left: 0,
+        top: 'center',
+        textStyle: {
+          fontSize: 18,
+        }
       }],
       series: [
         {
           type: 'heatmap',
           xAxisIndex: 0,
           yAxisIndex: 0,
-          data: csi_data,
+          data: davis_csi_data,
         },
-
         {
           type: 'heatmap',
           xAxisIndex: 1,
           yAxisIndex: 1,
-          data: tanimoto_data,
+          data: davis_tanimoto_data,
+        },
+        {
+          type: 'heatmap',
+          xAxisIndex: 2,
+          yAxisIndex: 2,
+          data: kiba_csi_data,
+        },
+        {
+          type: 'heatmap',
+          xAxisIndex: 3,
+          yAxisIndex: 3,
+          data: kiba_tanimoto_data,
         }
       ]
     };

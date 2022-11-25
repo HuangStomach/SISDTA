@@ -8,9 +8,9 @@ from data.dataset import MultiDataset
 
 def matrix(dataType = 'davis'):
     dataset = MultiDataset(dataType, sim_type='csi')
-    csi = dataset.handler.d_sim.tolist()
+    csi = dataset.handler.d_sim[:20, :20].tolist()
     dataset = MultiDataset(dataType, sim_type='default')
-    tanimoto = dataset.handler.d_sim.tolist()
+    tanimoto = dataset.handler.d_sim[:20, :20].tolist()
 
     with open('./output/{}_csi.json'.format(dataType), 'w') as f:
         json.dump(csi, f)
@@ -20,3 +20,4 @@ def matrix(dataType = 'davis'):
         
 if __name__=='__main__':
     matrix('davis')
+    matrix('kiba')
