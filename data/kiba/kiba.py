@@ -3,7 +3,7 @@ import numpy as np
 import json
 
 class Kiba:
-    def __init__(self, train = True, sim_type='csi'):
+    def __init__(self, train = True, sim_type='sis'):
         self.train = train
         self.sim_type = sim_type
         self.sim_neighbor_num = 5
