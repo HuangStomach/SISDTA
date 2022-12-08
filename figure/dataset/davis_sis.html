@@ -8,9 +8,9 @@
 <body style="height: 100%; margin: 0">
   <div id="container" style="height: 100%"></div>
   <script src="https://fastly.jsdelivr.net/npm/echarts@5.3.3/dist/echarts.min.js"></script>
-  <script src="./davis_csi.js"></script>
+  <script src="./davis_sis.js"></script>
   <script src="./davis_tanimoto.js"></script>
-  <script src="./kiba_csi.js"></script>
+  <script src="./kiba_sis.js"></script>
   <script src="./kiba_tanimoto.js"></script>
   <script>
     let dom = document.getElementById('container');
@@ -20,15 +20,15 @@
     });
 
     const len = 20;
-    const davis_csi_data = []
+    const davis_sis_data = []
     const davis_tanimoto_data = []
-    const kiba_csi_data = []
+    const kiba_sis_data = []
     const kiba_tanimoto_data = []
     for (let i = 0; i < len; i++) {
       for (let j = 0; j < len; j++) {
-        davis_csi_data.push([i, len - j - 1, davis_csi_raw[i][j]]);
+        davis_sis_data.push([i, len - j - 1, davis_sis_raw[i][j]]);
         davis_tanimoto_data.push([i, len - j - 1, davis_tanimoto_raw[i][j]]);
-        kiba_csi_data.push([i, len - j - 1, kiba_csi_raw[i][j]]);
+        kiba_sis_data.push([i, len - j - 1, kiba_sis_raw[i][j]]);
         kiba_tanimoto_data.push([i, len - j - 1, j, kiba_tanimoto_raw[i][j]]);
       }
     }
@@ -67,9 +67,9 @@
         { id: 'bottomright', right: '7%', bottom:'7%', width: '40%', height: '40%' },
       ],
       xAxis: [
-        xAxis(0, 'csi similarity matrix of Davis', 'topleft'),
+        xAxis(0, 'sis similarity matrix of Davis', 'topleft'),
         xAxis(1, 'tanimoto similarity matrix of Davis', 'topright'),
-        xAxis(2, 'csi similarity matrix of KIBA', 'bottomleft'),
+        xAxis(2, 'sis similarity matrix of KIBA', 'bottomleft'),
         xAxis(3, 'tanimoto similarity matrix of KIBA', 'bottomright'),
       ],
       yAxis: [{
@@ -110,7 +110,7 @@
           type: 'heatmap',
           xAxisIndex: 0,
           yAxisIndex: 0,
-          data: davis_csi_data,
+          data: davis_sis_data,
         },
         {
           type: 'heatmap',
@@ -122,7 +122,7 @@
           type: 'heatmap',
           xAxisIndex: 2,
           yAxisIndex: 2,
-          data: kiba_csi_data,
+          data: kiba_sis_data,
         },
         {
           type: 'heatmap',
