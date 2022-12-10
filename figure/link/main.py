@@ -6,7 +6,7 @@ sys.path.append(os.getcwd())
 from data.dataset import MultiDataset
 drugs = ["CHEMBL206783", "CHEMBL206955", "CHEMBL207037", "CHEMBL207130", "CHEMBL207235", "CHEMBL207246"]
 
-data = MultiDataset('kiba', sim_type='csi')
+data = MultiDataset('kiba', sim_type='sis')
 size = data.d_sim_ei.size()[1]
 res = []
 for i in range(size):
@@ -20,7 +20,7 @@ for i in range(size):
             'target': drugs[target.item() - 11]
         })
 
-with open('./output/csi_link.json', 'w') as file:
+with open('./output/sis_link.json', 'w') as file:
     json.dump(res, file)
 
 data = MultiDataset('kiba', sim_type='default')

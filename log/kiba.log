@@ -1,5 +1,5 @@
 Epoch: 950 train loss: 1.812903 train mse: 0.002354 test mse: 0.122538 ci: 0.901682 rm2: 0.809262
-Namespace(device='cuda:0', epochs=1000, dataset='kiba', batch_size=512, learning_rate=0.002, lambda_1=1e-05, lambda_2=1, sim_type='csi', weight_decay=0.0, unit=0.1)
+Namespace(device='cuda:0', epochs=1000, dataset='kiba', batch_size=512, learning_rate=0.002, lambda_1=1e-05, lambda_2=1, sim_type='sis', weight_decay=0.0, unit=0.1)
 Epoch: 980 train loss: 1.840690 train mse: 0.001895 test mse: 0.126045 ci: 0.899768 rm2: 0.802172
 Namespace(device='cuda:0', epochs=1000, dataset='kiba', batch_size=512, learning_rate=0.002, lambda_1=1e-05, lambda_2=1, sim_type='cosine', weight_decay=0.0, unit=0.1)
 Epoch: 930 train loss: 2.079152 train mse: 0.004109 test mse: 0.124397 ci: 0.899736 rm2: 0.802986
