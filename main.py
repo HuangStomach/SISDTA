@@ -20,7 +20,7 @@ if __name__=='__main__':
     parser.add_argument('-lr', '--learning-rate', default=0.002, type=float, metavar='float')
     parser.add_argument('-l1', '--lambda_1', default=0.00001, type=float, metavar='float')
     parser.add_argument('-l2', '--lambda_2', default=1, type=float, metavar='float')
-    parser.add_argument('--sim-type', default='csi', type=str, metavar='string')
+    parser.add_argument('--sim-type', default='sis', type=str, metavar='string')
     parser.add_argument('-w', '--weight-decay', default=0.0, type=float, metavar='float')
     parser.add_argument('-u', '--unit', default=0.1, type=float, metavar='float', help='unit of target')
     args = parser.parse_args()

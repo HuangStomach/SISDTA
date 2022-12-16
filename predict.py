@@ -14,7 +14,7 @@ class Predict:
         parser = argparse.ArgumentParser()
         parser.add_argument('--device', default='cpu', type=str, metavar='string')
         parser.add_argument('-d', '--dataset', default='kiba', type=str, metavar='string')
-        parser.add_argument('--sim-type', default='csi', type=str, metavar='string')
+        parser.add_argument('--sim-type', default='sis', type=str, metavar='string')
         self.args = parser.parse_args()
 
         self._dataset = MultiDataset(self.args.dataset, train=False, device=self.args.device, new=new, sim_type=self.args.sim_type)

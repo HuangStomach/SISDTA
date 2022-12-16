@@ -160,7 +160,7 @@ def drug_sim(dataType = 'davis'):
     drug_ecfps = np.loadtxt('./data/{}/drug_ecfps.csv'.format(dataType), delimiter=',', dtype=int, comments=None)
     drug_count = drug_ecfps.shape[0]
 
-    csi = np.zeros((drug_count, drug_count))
+    sis = np.zeros((drug_count, drug_count))
     cosine = np.zeros((drug_count, drug_count))
     pearson = np.zeros((drug_count, drug_count))
     euclidean = np.zeros((drug_count, drug_count))
@@ -168,9 +168,9 @@ def drug_sim(dataType = 'davis'):
 
     for i in range(drug_count):
         for j in range(drug_count):
-            # csi
+            # sis
             inter = np.sum(np.bitwise_and(drug_ecfps[i], drug_ecfps[j]))
-            csi[i][j] = 1 - ((np.sum(drug_ecfps[j]) - inter) / np.sum(drug_ecfps[j]))
+            sis[i][j] = 1 - ((np.sum(drug_ecfps[j]) - inter) / np.sum(drug_ecfps[j]))
             # cosine
             cosine[i][j] = 1 - distance.cosine(drug_ecfps[i], drug_ecfps[j])
             # pearson
@@ -180,7 +180,7 @@ def drug_sim(dataType = 'davis'):
             # jaccard
             jaccard[i][j] = 1 - distance.jaccard(drug_ecfps[i], drug_ecfps[j])
 
-    np.savetxt('./data/{}/drug_csi.csv'.format(dataType), csi, fmt='%s', delimiter=',')
+    np.savetxt('./data/{}/drug_sis.csv'.format(dataType), sis, fmt='%s', delimiter=',')
     np.savetxt('./data/{}/drug_cosine.csv'.format(dataType), cosine, fmt='%s', delimiter=',')
     np.savetxt('./data/{}/drug_pearson.csv'.format(dataType), pearson, fmt='%s', delimiter=',')
     euclidean_max, euclidean_min = euclidean.max(axis=0), euclidean.min(axis=0)
@@ -192,7 +192,7 @@ def p_sim(dataType = 'davis'):
     drug_ecfps = pd.read_csv('./data/{}/protein_embedding.csv'.format(dataType), delimiter=',', header=None, index_col=0).to_numpy(float)
     drug_count = drug_ecfps.shape[0]
 
-    # csi = np.zeros((drug_count, drug_count))
+    # sis = np.zeros((drug_count, drug_count))
     cosine = np.zeros((drug_count, drug_count))
     pearson = np.zeros((drug_count, drug_count))
     euclidean = np.zeros((drug_count, drug_count))
@@ -200,9 +200,9 @@ def p_sim(dataType = 'davis'):
 
     for i in range(drug_count):
         for j in range(drug_count):
-            # csi
+            # sis
             # inter = np.sum(np.bitwise_and(drug_ecfps[i], drug_ecfps[j]))
-            # csi[i][j] = 1 - ((np.sum(drug_ecfps[j]) - inter) / np.sum(drug_ecfps[j]))
+            # sis[i][j] = 1 - ((np.sum(drug_ecfps[j]) - inter) / np.sum(drug_ecfps[j]))
             # cosine
             # cosine[i][j] = 1 - distance.cosine(drug_ecfps[i] * 100, drug_ecfps[j] * 100)
             pearson
@@ -212,7 +212,7 @@ def p_sim(dataType = 'davis'):
             # jaccard
             # jaccard[i][j] = 1 - distance.jaccard(drug_ecfps[i], drug_ecfps[j])
 
-    # np.savetxt('./data/{}/drug_csi.csv'.format(dataType), csi, fmt='%s', delimiter=',')
+    # np.savetxt('./data/{}/drug_sis.csv'.format(dataType), sis, fmt='%s', delimiter=',')
     # np.savetxt('./data/{}/p_cosine.csv'.format(dataType), cosine, fmt='%s', delimiter=',')
     np.savetxt('./data/{}/p_pearson.csv'.format(dataType), pearson, fmt='%s', delimiter=',')
     euclidean_max, euclidean_min = euclidean.max(axis=0), euclidean.min(axis=0)
