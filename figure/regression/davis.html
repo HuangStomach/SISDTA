@@ -8,7 +8,7 @@
 <body style="height: 100%; margin: 0">
   <div id="container" style="height: 100%"></div>
   <script src="https://fastly.jsdelivr.net/npm/echarts@5.3.3/dist/echarts.min.js"></script>
-  <script src="../output/davis_coord.js"></script>
+  <script src="../../output/davis_coord.js"></script>
   <script>
     let dom = document.getElementById('container');
     const myChart = echarts.init(dom, null, {
@@ -41,13 +41,16 @@
       title: {
         text: "Davis",
         left: 'center',
-        top: 0
+        top: 0,
+        textStyle: {
+          fontSize: 36,
+        }
       },
       xAxis: {
         name: 'Real',
         nameLocation: 'center',
         nameTextStyle: {
-          fontSize: 24,
+          fontSize: 36,
         },
         min: 4, max: 11
       },
@@ -55,7 +58,7 @@
         name: 'Predict',
         nameLocation: 'center',
         nameTextStyle: {
-          fontSize: 24,
+          fontSize: 36,
         },
         min: 4, max: 11
       },
