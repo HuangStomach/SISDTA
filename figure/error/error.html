@@ -44,14 +44,17 @@
       ],
       legend: {
         data: ['KIBA', 'Davis'],
+        textStyle: {
+          fontSize: 20,
+        },
         left: 'center',
-        bottom: 10
+        bottom: '10'
       },
       grid: [
         { id: 'topleft', left: '5%', top:'5%', width: '40%', height: '40%' },
         { id: 'topright', right: '5%', top:'5%', width: '40%', height: '40%' },
-        { id: 'bottomleft', left: '5%', bottom:'5%', width: '40%', height: '40%' },
-        { id: 'bottomright', right: '5%', bottom:'5%', width: '40%', height: '40%' },
+        { id: 'bottomleft', left: '5%', bottom:'10%', width: '40%', height: '40%' },
+        { id: 'bottomright', right: '5%', bottom:'10%', width: '40%', height: '40%' },
       ],
       xAxis: [
         { id: 0, interval: 0, name: 'Drug', nameTextStyle: {
@@ -85,6 +88,7 @@
         {
           name: 'KIBA',
           type: 'scatter',
+          symbolSize: 4,
           xAxisId: 0,
           yAxisId: 0,
           datasetIndex: 0,
@@ -106,6 +110,7 @@
           yAxisId: 1,
           name: 'KIBA',
           type: 'scatter',
+          symbolSize: 4,
           datasetIndex: 1,
           label: {
             show: true,
@@ -123,6 +128,7 @@
         {
           name: 'Davis',
           type: 'scatter',
+          symbolSize: 4,
           xAxisId: 2,
           yAxisId: 2,
           datasetIndex: 2,
@@ -142,6 +148,7 @@
         {
           name: 'Davis',
           type: 'scatter',
+          symbolSize: 4,
           xAxisId: 3,
           yAxisId: 3,
           datasetIndex: 3,
