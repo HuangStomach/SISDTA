@@ -25,14 +25,16 @@
       },
       title: [
         { 
-          text: 'SIS-based simple drug graph', left: '14%', bottom: '5%',
+          text: 'SIS-based simple drug graph', left: '9%', bottom: '5%',
           textStyle: {
-            fontWeight: 'normal'
+            fontWeight: 'normal',
+            fontSize: 32,
           }
         },
-        { text: 'Tanimoto similarity-based simple drug graph', right: '13%', bottom: '5%',
+        { text: 'Tanimoto similarity-based simple drug graph', right: '3%', bottom: '5%',
           textStyle: {
-            fontWeight: 'normal'
+            fontWeight: 'normal',
+            fontSize: 32,
           }
         }
       ],
@@ -42,15 +44,16 @@
           layout: 'none',
           width: '40%',
           height: '70%',
+          top: '10%',
           left: '5%',
-          symbolSize: 60,
+          symbolSize: 90,
           roam: true,
           label: {
             show: true,
             fontSize: 15
           },
           edgeSymbol: ['arrow'],
-          edgeSymbolSize: [10],
+          edgeSymbolSize: [20],
           edgeLabel: {
             fontSize: 30
           },
@@ -88,7 +91,7 @@
             }
           ],
           links: [
-            { "source": "CHEMBL207235", "target": "CHEMBL206783" }, { "source": "CHEMBL207235", "target": "CHEMBL206955" }, { "source": "CHEMBL207130", "target": "CHEMBL206955" }, { "source": "CHEMBL207246", "target": "CHEMBL206955" }, { "source": "CHEMBL207235", "target": "CHEMBL207037" }, { "source": "CHEMBL206955", "target": "CHEMBL207037" }, { "source": "CHEMBL207246", "target": "CHEMBL207037" }, { "source": "CHEMBL207235", "target": "CHEMBL207130" }, { "source": "CHEMBL206955", "target": "CHEMBL207130" }, { "source": "CHEMBL206955", "target": "CHEMBL207235" }, { "source": "CHEMBL207130", "target": "CHEMBL207235" }, { "source": "CHEMBL206955", "target": "CHEMBL207246" }, { "source": "CHEMBL207235", "target": "CHEMBL207246" }, { "source": "CHEMBL207037", "target": "CHEMBL207246" }
+            {"source": "CHEMBL207235", "target": "CHEMBL206783"}, {"source": "CHEMBL207235", "target": "CHEMBL206955"}, {"source": "CHEMBL207130", "target": "CHEMBL206955"}, {"source": "CHEMBL207246", "target": "CHEMBL206955"}, {"source": "CHEMBL207235", "target": "CHEMBL207037"}, {"source": "CHEMBL206955", "target": "CHEMBL207037"}, {"source": "CHEMBL207246", "target": "CHEMBL207037"}, {"source": "CHEMBL207235", "target": "CHEMBL207130"}, {"source": "CHEMBL206955", "target": "CHEMBL207130"}, {"source": "CHEMBL206955", "target": "CHEMBL207235"}, {"source": "CHEMBL207130", "target": "CHEMBL207235"}, {"source": "CHEMBL206955", "target": "CHEMBL207246"}, {"source": "CHEMBL207235", "target": "CHEMBL207246"}, {"source": "CHEMBL207037", "target": "CHEMBL207246"}
           ],
           lineStyle: {
             opacity: 0.9,
@@ -121,8 +124,9 @@
           layout: 'none',
           width: '40%',
           height: '70%',
+          top: '10%',
           left: '55%',
-          symbolSize: 60,
+          symbolSize: 90,
           roam: true,
           label: {
             show: true,
