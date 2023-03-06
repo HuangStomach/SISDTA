@@ -10,6 +10,7 @@ import argparse
 from model.gnn import GNN
 from model.supconloss import SupConLoss
 from data.dataset import MultiDataset
+from hook import Hook
 
 if __name__=='__main__':
     parser = argparse.ArgumentParser()
@@ -33,7 +34,9 @@ if __name__=='__main__':
     supConLoss = SupConLoss()
     mseLoss = nn.MSELoss()
     aeMseLoss = nn.MSELoss()
+    hook = Hook()
     model = GNN(train.p_gos_dim).to(args.device)
+    model.ecfps_sim.register_forward_hook(hook.record)
     optimizer = torch.optim.Adam(model.parameters(), lr=args.learning_rate, weight_decay=args.weight_decay)
 
     print('training...')
@@ -41,7 +44,7 @@ if __name__=='__main__':
         for d_index, p_index, d_vecs, p_embeddings, y, classes in tqdm(trainLoader, leave=False):
             optimizer.zero_grad()
             y_bar, encoded, decoded, feature = model(d_index, p_index, d_vecs, p_embeddings, train)
-
+            
             train_mse = mseLoss(y, y_bar)
             trainLoss = train_mse + \
                 args.lambda_1 * supConLoss(encoded, classes) + \
@@ -67,6 +70,6 @@ if __name__=='__main__':
                 print('Epoch: {} train loss: {:.6f} train mse: {:.6f} test mse: {:.6f} ci: {:.6f} rm2: {:.6f}'.format(
                     epoch, trainLoss.item(), train_mse.item(), test_mse, ci, rm2
                 ))
-
-    torch.save(model.state_dict(), './output/{}_model.pt'.format(args.dataset))
+    print(hook.output_dict())
+    # torch.save(model.state_dict(), './output/{}_model.pt'.format(args.dataset))
     print(args)
