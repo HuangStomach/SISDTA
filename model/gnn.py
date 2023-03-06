@@ -2,9 +2,9 @@ import torch
 import torch.nn as nn
 from torch_geometric.nn import Sequential, GCNConv
 
-class FC(nn.Module):
+class GNN(nn.Module):
     def __init__(self, p_gos_dim):
-        super(FC, self).__init__()
+        super(GNN, self).__init__()
         dim = 300 + 1024 + 1024 + 1024;
 
         self.encoder = nn.Sequential(

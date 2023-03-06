@@ -7,7 +7,7 @@ from metrics import get_cindex, get_rm2
 from tqdm import tqdm
 import argparse
 
-from model.fc import FC
+from model.gnn import GNN
 from model.supconloss import SupConLoss
 from data.dataset import MultiDataset
 
@@ -33,7 +33,7 @@ if __name__=='__main__':
     supConLoss = SupConLoss()
     mseLoss = nn.MSELoss()
     aeMseLoss = nn.MSELoss()
-    model = FC(train.p_gos_dim).to(args.device)
+    model = GNN(train.p_gos_dim).to(args.device)
     optimizer = torch.optim.Adam(model.parameters(), lr=args.learning_rate, weight_decay=args.weight_decay)
 
     print('training...')

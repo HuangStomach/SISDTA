@@ -6,7 +6,7 @@ from tqdm import tqdm
 import numpy as np
 import argparse
 
-from model.fc import FC
+from model.gnn import GNN
 from data.dataset import MultiDataset
 
 class Predict:
@@ -22,7 +22,7 @@ class Predict:
 
     def predict(self):
         with torch.no_grad():
-            self._model = FC(self._dataset.p_gos_dim).to(self.args.device)
+            self._model = GNN(self._dataset.p_gos_dim).to(self.args.device)
             path = "./output/{}_model.pt".format(self.args.dataset)
             model_state_dict = torch.load(path, map_location=torch.device(self.args.device))
             self._model.load_state_dict(model_state_dict)
