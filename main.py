@@ -34,9 +34,9 @@ if __name__=='__main__':
     supConLoss = SupConLoss()
     mseLoss = nn.MSELoss()
     aeMseLoss = nn.MSELoss()
-    hook = Hook()
+    hook = Hook(dataset=args.dataset, sim_type=args.sim_type)
     model = GNN(train.p_gos_dim).to(args.device)
-    model.ecfps_sim.register_forward_hook(hook.record)
+    model.ecfps_sim.register_forward_hook(hook.record('ecfps_sim'))
     optimizer = torch.optim.Adam(model.parameters(), lr=args.learning_rate, weight_decay=args.weight_decay)
 
     print('training...')
@@ -70,6 +70,7 @@ if __name__=='__main__':
                 print('Epoch: {} train loss: {:.6f} train mse: {:.6f} test mse: {:.6f} ci: {:.6f} rm2: {:.6f}'.format(
                     epoch, trainLoss.item(), train_mse.item(), test_mse, ci, rm2
                 ))
-    print(hook.output_dict())
-    # torch.save(model.state_dict(), './output/{}_model.pt'.format(args.dataset))
+
+    hook.save()
+    torch.save(model.state_dict(), './output/{}/{}_model.pt'.format(args.dataset, args.sim_type))
     print(args)

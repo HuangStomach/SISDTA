@@ -4,8 +4,10 @@ data/**/*.txt
 data/**/*.json
 data/**/Y
 _test*
-output/*
-!output/.gitkeep
+output/**/*.csv
+output/**/*.js
+output/**/*.pt
+output/**/*.json
 .DS_Store
 
 # Byte-compiled / optimized / DLL files
