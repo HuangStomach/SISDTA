@@ -16,7 +16,7 @@ class Hook:
     def output_dict(self):
         res = dict()
         for key in self.record_dict.keys():
-            res[key] = self.record_dict[key].detach().numpy()
+            res[key] = self.record_dict[key].detach().cpu().numpy()
 
         return res
 
