@@ -23,15 +23,16 @@ class Predict:
     def predict(self):
         with torch.no_grad():
             self._model = GNN(self._dataset.p_gos_dim).to(self.args.device)
-            path = "./output/{}_model.pt".format(self.args.dataset)
+            path = "./output/{}/{}_model.pt".format(self.args.dataset, self.args.sim_type)
             model_state_dict = torch.load(path, map_location=torch.device(self.args.device))
             self._model.load_state_dict(model_state_dict)
             self._model.eval()
+            
         return self
     
     def model(self):
         return self._model
-    
+
     def loader(self):
         return self._loader
 
@@ -41,6 +42,9 @@ class Predict:
 if __name__=='__main__':
     predict = Predict()
     predict.predict()
+
+    preds = torch.tensor([])
+    labels = torch.tensor([])
 
     for d_index, p_index, d_vecs, p_embeddings in tqdm(predict.loader(), leave=False):
         y_bar, _, _, _ = predict.model()(d_index, p_index, d_vecs, p_embeddings, predict.dataset())
