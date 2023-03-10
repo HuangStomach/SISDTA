@@ -3,6 +3,7 @@ data/**/*.tsv
 data/**/*.txt
 data/**/*.json
 data/**/Y
+log/*.log
 _test*
 output/**/*.csv
 output/**/*.js

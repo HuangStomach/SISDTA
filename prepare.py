@@ -188,51 +188,6 @@ def drug_sim(dataType = 'davis'):
     np.savetxt('./data/{}/drug_euclidean.csv'.format(dataType), euclidean, fmt='%s', delimiter=',')
     np.savetxt('./data/{}/drug_jaccard.csv'.format(dataType), jaccard, fmt='%s', delimiter=',')
 
-def p_sim(dataType = 'davis'):
-    drug_ecfps = pd.read_csv('./data/{}/protein_embedding.csv'.format(dataType), delimiter=',', header=None, index_col=0).to_numpy(float)
-    drug_count = drug_ecfps.shape[0]
-
-    # sis = np.zeros((drug_count, drug_count))
-    cosine = np.zeros((drug_count, drug_count))
-    pearson = np.zeros((drug_count, drug_count))
-    euclidean = np.zeros((drug_count, drug_count))
-    # jaccard = np.zeros((drug_count, drug_count))
-
-    for i in range(drug_count):
-        for j in range(drug_count):
-            # sis
-            # inter = np.sum(np.bitwise_and(drug_ecfps[i], drug_ecfps[j]))
-            # sis[i][j] = 1 - ((np.sum(drug_ecfps[j]) - inter) / np.sum(drug_ecfps[j]))
-            # cosine
-            # cosine[i][j] = 1 - distance.cosine(drug_ecfps[i] * 100, drug_ecfps[j] * 100)
-            pearson
-            pearson[i][j] = 1 - distance.correlation(drug_ecfps[i], drug_ecfps[j])
-            # euclidean
-            euclidean[i][j] = distance.euclidean(drug_ecfps[i], drug_ecfps[j])
-            # jaccard
-            # jaccard[i][j] = 1 - distance.jaccard(drug_ecfps[i], drug_ecfps[j])
-
-    # np.savetxt('./data/{}/drug_sis.csv'.format(dataType), sis, fmt='%s', delimiter=',')
-    # np.savetxt('./data/{}/p_cosine.csv'.format(dataType), cosine, fmt='%s', delimiter=',')
-    np.savetxt('./data/{}/p_pearson.csv'.format(dataType), pearson, fmt='%s', delimiter=',')
-    euclidean_max, euclidean_min = euclidean.max(axis=0), euclidean.min(axis=0)
-    euclidean = 1 - ((euclidean - euclidean_min) / (euclidean_max - euclidean_min))
-    np.savetxt('./data/{}/p_euclidean.csv'.format(dataType), euclidean, fmt='%s', delimiter=',')
-    # np.savetxt('./data/{}/p_jaccard.csv'.format(dataType), jaccard, fmt='%s', delimiter=',')
-
-def tanimoto_coefficient(p_vec, q_vec):
-    """
-    This method implements the cosine tanimoto coefficient metric
-    :param p_vec: vector one
-    :param q_vec: vector two
-    :return: the tanimoto coefficient between vector one and two
-    """
-    pq = np.dot(p_vec, q_vec)
-    p_square = np.linalg.norm(p_vec)
-    q_square = np.linalg.norm(q_vec)
-    return pq / (p_square + q_square - pq)
-
 if __name__=='__main__':
     dataType = 'kiba'
-    # drug_sim(dataType)
-    p_sim(dataType)
+    drug_sim(dataType)

@@ -33,13 +33,11 @@ class MultiDataset(Dataset):
         self.d_vecs = torch.tensor(self.handler.d_vecs, dtype=torch.float32, device=self.device)
         self.d_ecfps = torch.tensor(self.handler.d_ecfps, dtype=torch.float32, device=self.device)
         self.d_sim = torch.tensor(self.handler.d_sim, dtype=torch.float32, device=self.device)
-        # self.d_intersect = self.handler.d_intersect
 
         self.p_gos = torch.tensor(self.handler.p_gos, dtype=torch.float32, device=self.device)
         self.p_gos_dim = self.p_gos.size()[1]
         self.p_sim = torch.tensor(self.handler.p_sim, dtype=torch.float32, device=self.device)
         self.p_embeddings = torch.tensor(self.handler.p_embeddings, dtype=torch.float32, device=self.device)
-        # self.p_intersect = self.handler.p_intersect
 
         self.dsize = self.d_sim.size()[0]
         self.psize = self.p_sim.size()[0]
@@ -67,9 +65,6 @@ class MultiDataset(Dataset):
 
         self.classes = torch.tensor(classes, dtype=torch.long, device=self.device)
 
-        # print('generating intersect graph...')
-        # self.d_inter_ei, self.d_inter_ew = self._graph_gen(self.dsize, self.d_intersect, 5)
-        # self.p_inter_ei, self.p_inter_ew = self._graph_gen(self.psize, self.p_intersect, 5, 0.8)
         print('generating similarity graph...')
         self.d_sim_ei, self.d_sim_ew = self._graph_gen(
             self.dsize, self.d_sim, self.handler.sim_neighbor_num, self.handler.d_threshold
