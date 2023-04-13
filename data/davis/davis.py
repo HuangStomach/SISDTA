@@ -4,12 +4,12 @@ import json
 
 
 class Davis:
-    def __init__(self, train=True, sim_type='sis'):
+    def __init__(self, train=True, sim_type='sis', d_threshold=0.6, p_threshold=0.6):
         self.train = train
         self.sim_type = sim_type
         self.sim_neighbor_num = 5
-        self.d_threshold = 0.6
-        self.p_threshold = 0.6
+        self.d_threshold = d_threshold
+        self.p_threshold = p_threshold
 
         self.ligands_path = './data/davis/ligands_can.json'
         self.d_ecfps_path = './data/davis/drug_ecfps.csv'

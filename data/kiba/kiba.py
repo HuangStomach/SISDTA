@@ -3,12 +3,12 @@ import numpy as np
 import json
 
 class Kiba:
-    def __init__(self, train = True, sim_type='sis'):
+    def __init__(self, train = True, sim_type='sis', d_threshold=0.7, p_threshold=0.7):
         self.train = train
         self.sim_type = sim_type
         self.sim_neighbor_num = 5
-        self.d_threshold = 0.7
-        self.p_threshold = 0.7
+        self.d_threshold = d_threshold
+        self.p_threshold = p_threshold
         
         self.ligands_path = './data/kiba/ligands_can.json'
         self.d_ecfps_path = './data/kiba/drug_ecfps.csv'

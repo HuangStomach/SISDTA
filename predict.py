@@ -15,9 +15,14 @@ class Predict:
         parser.add_argument('--device', default='cpu', type=str, metavar='string')
         parser.add_argument('-d', '--dataset', default='kiba', type=str, metavar='string')
         parser.add_argument('--sim-type', default='sis', type=str, metavar='string')
+        parser.add_argument('-dt', '--d_threshold', default=0.7, type=float, metavar='float')
+        parser.add_argument('-pt', '--p_threshold', default=0.7, type=float, metavar='float')
         self.args = parser.parse_args()
 
-        self._dataset = MultiDataset(self.args.dataset, train=False, device=self.args.device, new=new, sim_type=self.args.sim_type)
+        self._dataset = MultiDataset(
+            self.args.dataset, train=False, device=self.args.device, new=new, sim_type=self.args.sim_type,
+            d_threshold=args.d_threshold, p_threshold=args.p_threshold,
+        )
         self._loader = DataLoader(self._dataset, batch_size=batch_size)
 
     def predict(self):

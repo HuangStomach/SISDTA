@@ -22,12 +22,20 @@ if __name__=='__main__':
     parser.add_argument('-l1', '--lambda_1', default=0.00001, type=float, metavar='float')
     parser.add_argument('-l2', '--lambda_2', default=1, type=float, metavar='float')
     parser.add_argument('--sim-type', default='sis', type=str, metavar='string')
+    parser.add_argument('-dt', '--d_threshold', default=0.7, type=float, metavar='float')
+    parser.add_argument('-pt', '--p_threshold', default=0.7, type=float, metavar='float')
     parser.add_argument('-w', '--weight-decay', default=0.0, type=float, metavar='float')
     parser.add_argument('-u', '--unit', default=0.1, type=float, metavar='float', help='unit of target')
     args = parser.parse_args()
 
-    train = MultiDataset(args.dataset, unit=args.unit, device=args.device, sim_type=args.sim_type)
-    test = MultiDataset(args.dataset, train=False, device=args.device, sim_type=args.sim_type)
+    train = MultiDataset(
+        args.dataset, unit=args.unit, device=args.device, sim_type=args.sim_type,
+        d_threshold=args.d_threshold, p_threshold=args.p_threshold,
+    )
+    test = MultiDataset(
+        args.dataset, train=False, device=args.device, sim_type=args.sim_type,
+        d_threshold=args.d_threshold, p_threshold=args.p_threshold,
+    )
     trainLoader = DataLoader(train, batch_size=args.batch_size, shuffle=True)
     testLoader = DataLoader(test, batch_size=args.batch_size, shuffle=False)
 

@@ -18,14 +18,18 @@ handlers = {
 }
 
 class MultiDataset(Dataset):
-    def __init__(self, type = 'kiba', train = True, unit = 0.05, device = 'cpu', sim_type = 'sis', new = False):
+    def __init__(self, 
+        type = 'kiba', train = True, unit = 0.05, 
+        device = 'cpu', sim_type = 'sis', new = False,
+        d_threshold = 0.6, p_threshold = 0.6
+    ):
         # super().__init__(None, transform, pre_transform) # 无需预处理与下载
         print('initalizing {} {} dataset...'.format(type, 'train' if train else 'test'))
         self.type = type
         self.device = device
         self.train = train
         self.new = new
-        self.handler = handlers[type](self.train, sim_type)
+        self.handler = handlers[type](self.train, sim_type, d_threshold, p_threshold)
 
         self._check_exists()
         self.handler._load_data()
