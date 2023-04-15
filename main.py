@@ -14,22 +14,30 @@ from hook import Hook
 
 if __name__=='__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--device', default='cpu', type=str, metavar='string')
-    parser.add_argument('-e', '--epochs', default=1000, type=int, metavar='int')
-    parser.add_argument('-d', '--dataset', default='kiba', type=str, metavar='string')
-    parser.add_argument('-b', '--batch-size', default=512, type=int, metavar='int')
-    parser.add_argument('-lr', '--learning-rate', default=0.002, type=float, metavar='float')
-    parser.add_argument('-l1', '--lambda_1', default=0.00001, type=float, metavar='float')
-    parser.add_argument('-l2', '--lambda_2', default=1, type=float, metavar='float')
-    parser.add_argument('--sim-type', default='sis', type=str, metavar='string')
-    parser.add_argument('-dt', '--d_threshold', default=0.7, type=float, metavar='float')
-    parser.add_argument('-pt', '--p_threshold', default=0.7, type=float, metavar='float')
-    parser.add_argument('-w', '--weight-decay', default=0.0, type=float, metavar='float')
-    parser.add_argument('-u', '--unit', default=0.1, type=float, metavar='float', help='unit of target')
+    parser.add_argument('--device', default='cpu', type=str, metavar=None, 
+                        help='Name of the processor used for computing')
+    parser.add_argument('-e', '--epochs', default=1000, type=int, metavar=None, 
+                        help='Number of training iterations required')
+    parser.add_argument('-d', '--dataset', default='kiba', type=str, metavar='[kiba, davis]', 
+                        help='Name of the selected data set')
+    parser.add_argument('-b', '--batch-size', default=512, type=int, metavar=None,
+                        help='Size of each training batch')
+    parser.add_argument('-lr', '--learning-rate', default=0.002, type=float, metavar=None,
+                        help='The step size at each iteration')
+    parser.add_argument('-l1', '--lambda_1', default=1, type=float, metavar=None,
+                        help='AutoEncoder loss function weights')
+    # parser.add_argument('-l2', '--lambda_2', default=0.00001, type=float, metavar='float')
+    parser.add_argument('--sim-type', default='sis', type=str, metavar=None,
+                        help='Similarity Strategy')
+    parser.add_argument('-dt', '--d_threshold', default=0.7, type=float, metavar=None,
+                        help='Thresholds for drug relationship graphs')
+    parser.add_argument('-pt', '--p_threshold', default=0.7, type=float, metavar=None,
+                        help='Thresholds for protein relationship graphs')
+    # parser.add_argument('-u', '--unit', default=0.1, type=float, metavar='float', help='unit of target')
     args = parser.parse_args()
 
     train = MultiDataset(
-        args.dataset, unit=args.unit, device=args.device, sim_type=args.sim_type,
+        args.dataset, device=args.device, sim_type=args.sim_type,
         d_threshold=args.d_threshold, p_threshold=args.p_threshold,
     )
     test = MultiDataset(
@@ -39,7 +47,7 @@ if __name__=='__main__':
     trainLoader = DataLoader(train, batch_size=args.batch_size, shuffle=True)
     testLoader = DataLoader(test, batch_size=args.batch_size, shuffle=False)
 
-    supConLoss = SupConLoss()
+    # supConLoss = SupConLoss()
     mseLoss = nn.MSELoss()
     aeMseLoss = nn.MSELoss()
     hook = Hook(dataset=args.dataset, sim_type=args.sim_type)
@@ -55,8 +63,8 @@ if __name__=='__main__':
             
             train_mse = mseLoss(y, y_bar)
             trainLoss = train_mse + \
-                args.lambda_1 * supConLoss(encoded, classes) + \
-                args.lambda_2 * aeMseLoss(decoded, feature)
+                args.lambda_1 * aeMseLoss(decoded, feature)
+                # args.lambda_2 * supConLoss(encoded, classes) + \
             trainLoss.backward()
 
             optimizer.step()

@@ -12,16 +12,21 @@ from data.dataset import MultiDataset
 class Predict:
     def __init__(self, new=False, batch_size=1024):
         parser = argparse.ArgumentParser()
-        parser.add_argument('--device', default='cpu', type=str, metavar='string')
-        parser.add_argument('-d', '--dataset', default='kiba', type=str, metavar='string')
-        parser.add_argument('--sim-type', default='sis', type=str, metavar='string')
-        parser.add_argument('-dt', '--d_threshold', default=0.7, type=float, metavar='float')
-        parser.add_argument('-pt', '--p_threshold', default=0.7, type=float, metavar='float')
+        parser.add_argument('--device', default='cpu', type=str, metavar=None, 
+                            help='Name of the processor used for computing')
+        parser.add_argument('-d', '--dataset', default='kiba', type=str, metavar='[kiba, davis]', 
+                            help='Name of the selected data set')
+        parser.add_argument('--sim-type', default='sis', type=str, metavar=None,
+                            help='Similarity Strategy')
+        parser.add_argument('-dt', '--d_threshold', default=0.7, type=float, metavar=None,
+                            help='Thresholds for drug relationship graphs')
+        parser.add_argument('-pt', '--p_threshold', default=0.7, type=float, metavar=None,
+                            help='Thresholds for protein relationship graphs')
         self.args = parser.parse_args()
 
         self._dataset = MultiDataset(
             self.args.dataset, train=False, device=self.args.device, new=new, sim_type=self.args.sim_type,
-            d_threshold=args.d_threshold, p_threshold=args.p_threshold,
+            d_threshold=self.args.d_threshold, p_threshold=self.args.p_threshold,
         )
         self._loader = DataLoader(self._dataset, batch_size=batch_size)
 
