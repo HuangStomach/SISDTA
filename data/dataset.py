@@ -19,20 +19,22 @@ handlers = {
 
 class MultiDataset(Dataset):
     def __init__(self, 
-        type = 'kiba', train = True, unit = 0.05, 
+        dataset = 'kiba', train = True, unit = 0.05, 
         device = 'cpu', sim_type = 'sis', new = False,
-        d_threshold = 0.6, p_threshold = 0.6
+        d_threshold = 0.6, p_threshold = 0.6,
+        setting = 1, fold = 0
     ):
         # super().__init__(None, transform, pre_transform) # 无需预处理与下载
-        print('initalizing {} {} dataset...'.format(type, 'train' if train else 'test'))
-        self.type = type
+        print('initalizing {} {} dataset...'.format(dataset, 'train' if train else 'test'))
+        self.dataset = dataset
+        self.setting = setting
         self.device = device
         self.train = train
         self.new = new
-        self.handler = handlers[type](self.train, sim_type, d_threshold, p_threshold)
+        self.handler = handlers[dataset](self.train, sim_type, d_threshold, p_threshold)
 
         self._check_exists()
-        self.handler._load_data()
+        self.handler._load_data(setting, fold)
 
         self.d_vecs = torch.tensor(self.handler.d_vecs, dtype=torch.float32, device=self.device)
         self.d_ecfps = torch.tensor(self.handler.d_ecfps, dtype=torch.float32, device=self.device)
@@ -165,3 +167,8 @@ class MultiDataset(Dataset):
         #             inter = np.sum(np.bitwise_and(p_gos[i], p_gos[j]))
         #             matrix[i][j] = round(1 - ((np.sum(p_gos[j]) - inter) / np.sum(p_gos[j])), 6)
         #     np.savetxt(self.handler.p_intersect_path, matrix, fmt='%s', delimiter=',')
+    
+    @staticmethod
+    def fold_size(setting):
+        if setting == 1: return 1
+        else: return 5

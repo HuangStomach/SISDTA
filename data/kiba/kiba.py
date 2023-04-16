@@ -1,6 +1,8 @@
 import pandas as pd
 import numpy as np
 import json
+import os
+from sklearn.model_selection import KFold
 
 class Kiba:
     def __init__(self, train = True, sim_type='sis', d_threshold=0.7, p_threshold=0.7):
@@ -14,41 +16,72 @@ class Kiba:
         self.d_ecfps_path = './data/kiba/drug_ecfps.csv'
         self.d_vecs_path = './data/kiba/drug_vec.csv'
         self.d_sim_path = './data/kiba/kiba_drug_sim.txt'
-        self.d_intersect_path = './data/kiba/drug_intersect.csv'
         self.p_gos_path = './data/kiba/protein_go_vector.csv'
         self.p_sim_path = './data/kiba/kiba_target_sim.txt'
-        self.p_intersect_path = './data/kiba/protein_intersect.csv'
 
-    def _load_data(self):
+    def _load_data(self, setting, fold):
         self.d_vecs = np.loadtxt(self.d_vecs_path, delimiter=',', dtype=float, comments=None)
         self.d_ecfps = np.loadtxt(self.d_ecfps_path, delimiter=',', dtype=int, comments=None)
         
         d_sim_path = self.d_sim_path
+        delimiter = '\t'
         if self.sim_type != 'default':
             d_sim_path = './data/kiba/drug_{}.csv'.format(self.sim_type)
-            self.d_sim = np.loadtxt(d_sim_path, delimiter=',', dtype=float, comments=None)
-        else:
-            self.d_sim = np.loadtxt(d_sim_path, delimiter='\t', dtype=float, comments=None)
-        # self.d_intersect = np.loadtxt(self.d_intersect_path, delimiter=',', dtype=float, comments=None)
+            delimiter = ','
+        self.d_sim = np.loadtxt(d_sim_path, delimiter=delimiter, dtype=float, comments=None)
 
         self.p_gos = pd.read_csv(self.p_gos_path, delimiter=',', header=0, index_col=0).to_numpy(float)
         self.p_sim = np.loadtxt(self.p_sim_path, delimiter='\t', dtype=float, comments=None)
 
-        # self.p_intersect = np.loadtxt(self.p_intersect_path, delimiter=',', dtype=float, comments=None)
-        self.p_embeddings = pd.read_csv('./data/kiba/protein_embedding.csv', delimiter=',', header=None, index_col=0).to_numpy(float)
+        self.p_embeddings = pd.read_csv('./data/kiba/protein_embedding.csv', delimiter=',', header=None, 
+            index_col=0).to_numpy(float)
 
         self.y = np.loadtxt('./data/kiba/Y.txt', delimiter=',', dtype=float, comments=None)
+        y_durgs, y_proteins = np.where(np.isnan(self.y) == False)
 
-        name = "./data/kiba/folds/train_fold_setting1.txt" if self.train \
-            else "./data/kiba/folds/test_fold_setting1.txt"
+        if setting == 1:
+            name = "./data/kiba/folds/train_fold_setting1.txt" if self.train \
+                else "./data/kiba/folds/test_fold_setting1.txt"
 
-        with open(name) as f:
-            indexes = []
-            if self.train: 
-                for item in json.load(f):
-                    indexes.extend(item)
-            else: indexes = json.load(f)
-            indexes = np.array(indexes).flatten()
+            with open(name) as f:
+                indices = []
+                if self.train: 
+                    for item in json.load(f): indices.extend(item)
+                else: indices = json.load(f)
+                indices = np.array(indices).flatten()
+        elif setting == 2: # some drugs unseen
+            name = "./data/kiba/folds/fold_setting2.json"
 
-        rows, cols = np.where(np.isnan(self.y) == False)
-        self.drugs, self.proteins = rows[indexes], cols[indexes]
+            if not os.path.exists(name):
+                dsize = self.d_sim.shape[0]
+                kf = KFold(n_splits=5, shuffle=True)
+                folds = []
+                for _, test in kf.split(list(range(dsize))):
+                    folds.append(list(test))
+                with open(name, "w") as f: json.dump(folds, f, default=int)
+
+            folds = []
+            with open(name) as f:
+                folds = json.load(f)
+            
+            indices = np.isin(y_durgs, folds[fold])
+            if self.train: indices = ~indices
+        elif setting == 3: # some targets unseen
+            name = "./data/kiba/folds/fold_setting3.json"
+
+            if not os.path.exists(name):
+                psize = self.p_sim.shape[0]
+                kf = KFold(n_splits=5, shuffle=True)
+                folds = []
+                for _, test in kf.split(list(range(psize))):
+                    folds.append(list(test))
+                with open(name, "w") as f: json.dump(folds, f, default=int)
+
+            folds = []
+            with open(name) as f:
+                folds = json.load(f)
+            
+            indices = np.isin(y_proteins, folds[fold])
+            if self.train: indices = ~indices
+
+        self.drugs, self.proteins = y_durgs[indices], y_proteins[indices]
