@@ -1,28 +1,17 @@
 import torch
 from torch.utils.data import DataLoader
 from sklearn.metrics import mean_squared_error
-from metrics import get_cindex, get_rm2
+from src.metrics import get_cindex, get_rm2
 from tqdm import tqdm
-import numpy as np
-import argparse
 
 from model.gnn import GNN
 from data.dataset import MultiDataset
+from src.args import Args
 
 class Predict:
     def __init__(self, new=False, batch_size=1024):
-        parser = argparse.ArgumentParser()
-        parser.add_argument('--device', default='cpu', type=str, metavar=None, 
-                            help='Name of the processor used for computing')
-        parser.add_argument('-d', '--dataset', default='kiba', type=str, metavar='[kiba, davis]', 
-                            help='Name of the selected data set')
-        parser.add_argument('--sim-type', default='sis', type=str, metavar=None,
-                            help='Similarity Strategy')
-        parser.add_argument('-dt', '--d_threshold', default=0.7, type=float, metavar=None,
-                            help='Thresholds for drug relationship graphs')
-        parser.add_argument('-pt', '--p_threshold', default=0.7, type=float, metavar=None,
-                            help='Thresholds for protein relationship graphs')
-        self.args = parser.parse_args()
+        argparse = Args(action='train')
+        self.args = argparse.parse_args()
 
         self._dataset = MultiDataset(
             self.args.dataset, train=False, device=self.args.device, new=new, sim_type=self.args.sim_type,
