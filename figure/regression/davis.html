@@ -20,7 +20,8 @@
       animation: false,
       lineStyle: {
         type: 'dashed',
-        color: '#5470c6'
+        color: '#5470c6',
+        width: 3,
       },
       data: [
         [
@@ -47,18 +48,26 @@
         }
       },
       xAxis: {
-        name: 'Real',
+        name: 'True values of DTA',
         nameLocation: 'center',
         nameTextStyle: {
           fontSize: 36,
         },
+        nameGap: 30,
+        axisLabel: {
+          fontSize: 24,
+        },
         min: 4, max: 11
       },
       yAxis: {
-        name: 'Predict',
+        name: 'Predictive values of DTA',
         nameLocation: 'center',
         nameTextStyle: {
           fontSize: 36,
+        },
+        nameGap: 30,
+        axisLabel: {
+          fontSize: 24,
         },
         min: 4, max: 11
       },
