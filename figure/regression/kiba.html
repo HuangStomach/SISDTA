@@ -8,6 +8,7 @@
 <body style="height: 100%; margin: 0">
   <div id="container" style="height: 100%"></div>
   <script src="https://fastly.jsdelivr.net/npm/echarts@5.3.3/dist/echarts.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/echarts-stat@1.2.0/dist/ecStat.min.js"></script>
   <script src="../../output/kiba_coord.js"></script>
   <script>
     let dom = document.getElementById('container');
@@ -15,6 +16,7 @@
       renderer: 'canvas',
       useDirtyRect: false
     });
+    echarts.registerTransform(ecStat.transform.regression);
 
     const markLine = {
       animation: false,
@@ -31,6 +33,16 @@
       ],
     };
     const option = {
+      dataset: [
+        {
+          source: [...data, [4,4], [11,11]]
+        },
+        {
+          transform: {
+            type: 'ecStat:regression'
+          }
+        }
+      ],
       toolbox: {
         show: true,
         feature: {
@@ -71,12 +83,25 @@
         },
         min: 8, max: 17
       },
-      series: {
-        name: 'I',
-        type: 'scatter',
-        data,
-        markLine,
-      },
+      series: [
+        {
+          name: 'I',
+          type: 'scatter',
+          data,
+          markLine,
+        },
+        {
+          name: 'line',
+          type: 'line',
+          datasetIndex: 1,
+          symbolSize: 0.1,
+          symbol: 'circle',
+          lineStyle: {
+            color: 'red',
+            width: 3,
+          }
+        }
+      ],
       color: ['#91cc75', '#fac858', '#ee6666', '#73c0de', '#3ba272', '#fc8452', '#9a60b4', '#ea7ccc']
     };
 
