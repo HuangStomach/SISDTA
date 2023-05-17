@@ -72,16 +72,16 @@
       ],
       yAxis: [
         { id: 0, name: 'Median of Absolute Errors', nameTextStyle: {
-          fontWeight: 'bold', fontSize: 18,
+          fontWeight: 'bold', fontSize: 24,
         }, nameGap: 40, nameLocation: 'middle', gridId: 'topleft', axisLabel: { fontSize: 20 }},
         { id: 1, name: 'Median of Absolute Errors', nameTextStyle: {
-          fontWeight: 'bold', fontSize: 18,
+          fontWeight: 'bold', fontSize: 24,
         }, nameGap: 40, nameLocation: 'middle', gridId: 'topright', axisLabel: { fontSize: 20 }},
         { id: 2, name: 'Median of Absolute Errors', nameTextStyle: {
-          fontWeight: 'bold', fontSize: 18,
+          fontWeight: 'bold', fontSize: 24,
         }, nameGap: 40, nameLocation: 'middle', gridId: 'bottomleft', axisLabel: { fontSize: 20 }},
         { id: 3, name: 'Median of Absolute Errors', nameTextStyle: {
-          fontWeight: 'bold', fontSize: 18,
+          fontWeight: 'bold', fontSize: 24,
         }, nameGap: 40, nameLocation: 'middle', gridId: 'bottomright', axisLabel: { fontSize: 20 }},
       ],
       series: [
@@ -96,6 +96,7 @@
             show: true,
             position: 'TopLeft',
             formatter: item => item.data[1] > 1.5 ? item.data[2] : '',
+            fontSize: 18,
           },
           labelLayout: () => {
             return {
@@ -116,10 +117,11 @@
             show: true,
             position: 'TopLeft',
             formatter: item => item.data[1] > 0.5 ? item.data[2] : '',
+            fontSize: 18,
           },
           labelLayout: () => {
             return {
-              x: myChart.getWidth() - 150,
+              x: myChart.getWidth() - 120,
               moveOverlap: 'shiftY',
               draggable: true
             };
@@ -136,6 +138,7 @@
             show: true,
             position: 'TopLeft',
             formatter: item => item.data[1] > 0.3 ? item.data[2] : '',
+            fontSize: 18,
           },
           labelLayout: () => {
             return {
@@ -156,10 +159,11 @@
             show: true,
             position: 'TopLeft',
             formatter: item => item.data[1] > 0.5 ? item.data[2] : '',
+            fontSize: 18,
           },
           labelLayout: () => {
             return {
-              x: myChart.getWidth() - 150,
+              x: myChart.getWidth() - 120,
               moveOverlap: 'shiftY',
               draggable: true
             };
