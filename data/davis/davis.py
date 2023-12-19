@@ -12,6 +12,8 @@ class Davis:
         self.d_threshold = d_threshold
         self.p_threshold = p_threshold
 
+        self.train_setting1_path = './data/davis/folds/train_fold_setting1.txt'
+        self.test_setting1_path = './data/davis/folds/test_fold_setting1.txt'
         self.setting2_path = './data/davis/folds/fold_setting2.json'
         self.setting3_path = './data/davis/folds/fold_setting3.json'
 
