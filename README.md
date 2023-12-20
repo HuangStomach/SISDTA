@@ -12,9 +12,14 @@ Follow the `PyTroch` and `PyG` installation instructions to install the dependen
 
 For other dependencies and their versions please refer to the [requirements.txt](./requirements.txt) file.
 
+``` bash
+pip install -r requirements.txt
+```
+
+
 ## Data
 
-All `data`` is located in the data directory, which is derived from the original KIBA and Davis data.
+All `data` is located in the data directory, which is derived from the original KIBA and Davis data.
 
 ## Usage
 

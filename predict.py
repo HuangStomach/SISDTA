@@ -21,7 +21,7 @@ class Predict:
 
     def predict(self):
         with torch.no_grad():
-            self._model = GNN(self._dataset.p_gos_dim).to(self.args.device)
+            self._model = GNN().to(self.args.device)
             path = "./output/{}/{}_model.pt".format(self.args.dataset, self.args.sim_type)
             model_state_dict = torch.load(path, map_location=torch.device(self.args.device))
             self._model.load_state_dict(model_state_dict)

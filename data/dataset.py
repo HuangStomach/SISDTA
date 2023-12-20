@@ -43,7 +43,7 @@ class MultiDataset(Dataset):
         self.d_sim = torch.tensor(self.handler.d_sim, dtype=torch.float32, device=self.device)
 
         self.p_gos = torch.tensor(self.handler.p_gos, dtype=torch.float32, device=self.device)
-        self.p_gos_dim = self.p_gos.size()[1]
+        # self.p_gos_dim = self.p_gos.size()[1]
         self.p_sim = torch.tensor(self.handler.p_sim, dtype=torch.float32, device=self.device)
         self.p_embeddings = torch.tensor(self.handler.p_embeddings, dtype=torch.float32, device=self.device)
 

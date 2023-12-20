@@ -31,7 +31,7 @@ if __name__=='__main__':
         mseLoss = nn.MSELoss()
         aeMseLoss = nn.MSELoss()
         # hook = Hook(dataset=args.dataset, sim_type=args.sim_type)
-        model = GNN(train.p_gos_dim).to(args.device)
+        model = GNN().to(args.device)
         # model.ecfps_sim.register_forward_hook(hook.record('ecfps_sim'))
         optimizer = torch.optim.Adam(model.parameters(), lr=args.learning_rate)
 
