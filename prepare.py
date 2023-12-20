@@ -1,3 +1,4 @@
+import torch
 import requests
 import json
 import pandas as pd
@@ -5,12 +6,11 @@ import numpy as np
 import scipy.spatial.distance as distance
 from time import sleep
 from urllib import request
-# from transformers import BertModel, BertTokenizer
+import re
+import gc
+from transformers import BertModel, BertTokenizer
 from rdkit import Chem
 from rdkit.Chem import AllChem
-
-import gc
-import re
 
 def protein_seq():
     DTI = pd.read_csv('./data/DTI.csv')
@@ -34,40 +34,36 @@ def protein_seq():
             print(protein, e)
     np.savetxt('./data/protein/proteins.csv', seqs, fmt='%s', delimiter=',')
 
-# breakpoint = 'P78527'
-# threshold = 4128
-# def protein_token(dataType = 'davis'):
-#     seqs = np.loadtxt('./data/{}/protein.csv'.format(dataType), dtype=str, delimiter=',')
-#     tokenizer = BertTokenizer.from_pretrained("Rostlab/prot_bert", do_lower_case=False)
-#     model = BertModel.from_pretrained("Rostlab/prot_bert")
-#     can_continue = False
+def protein_embedding(dataType = 'davis'):
+    seqs = np.loadtxt('./data/{}/protein.csv'.format(dataType), 
+        dtype=str, delimiter=',')[:, 2 if dataType == 'davis' else 1]
+    tokenizer = BertTokenizer.from_pretrained("Rostlab/prot_bert", do_lower_case=False)
+    model = BertModel.from_pretrained("Rostlab/prot_bert")
 
-#     file = './data/{}/protein_embedding.csv'.format(dataType)
-#     with open(file, 'a+') as f:
-#         for protein, _, seq in seqs:
-#             # if protein == breakpoint: 
-#             #     can_continue = True
-#             #     continue
-#             # if can_continue == False: continue
+    device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+    model = model.to(device)
+    model = model.eval()
 
-#             if len(seq) > threshold:
-#                 f.write(protein + '\n')
-#                 print(protein, 'Ignore')
-#                 continue
+    file = './data/{}/protein_embedding_avg.csv'.format(dataType)
+    with open(file, 'a+') as f: 
+        f.flush
+        for seq in seqs:
+            seqs = [re.sub(r"[UZOB]", "X", " ".join(list(seq)))]
+            ids = tokenizer.batch_encode_plus(seq, add_special_tokens=True, padding="longest")
+            input_ids = torch.tensor(ids['input_ids']).to(device)
+            attention_mask = torch.tensor(ids['attention_mask']).to(device)
 
-#             s = " ".join(list(seq))
-#             s = re.sub(r"[UZOB]", "X", s)
-#             encoded_input = tokenizer(s, return_tensors='pt')
-#             output = model(**encoded_input)
-#             ll = output.pooler_output[0].detach().numpy().tolist()
-#             line = protein + ',' + ','.join(map(str, ll))
-#             f.write(line + '\n')   #加\n换行显示
-#             del encoded_input
-#             del output
-#             del line
-#             del ll
-#             gc.collect()
-#             print(protein, 'OK')
+            with torch.no_grad(): embedding = model(input_ids, attention_mask=attention_mask)[0]
+            embedding = embedding.numpy()
+
+            features = [] 
+            for seq_num in range(len(embedding)):
+                seq_len = (attention_mask[seq_num] == 1).sum()
+                seq_emd = embedding[seq_num][1 : seq_len-1]
+                features.append(seq_emd)
+            
+            line = ','.join(map(str, np.average(np.array(features), 0)[0]))
+            f.write(line + '\n')
 
 def protein_go(type):
     seqs = []
@@ -125,34 +121,21 @@ def drug_smile():
 
     np.savetxt('./data/drug/smiles.csv', seqs, fmt='%s', delimiter=',')
 
-def drug_ecfps(dataType = 'davis', filename = 'drug_smiles.csv'):
+def drug_ecfps(dataType = 'davis', filename = 'ligands_iso.json'):
     radius = 4
     seqs = []
-    type = filename.split('.')[1]
-    if type == 'csv':
-        drugs = np.loadtxt('./data/{}/{}'.format(dataType, filename), delimiter=',', dtype=str, comments=None)
+    fp = open('./data/{}/{}'.format(dataType, filename))
+    drugs = json.load(fp)
 
-        for drug in drugs:
-            try:
-                _, smiles = drug
-                mol = Chem.MolFromSmiles(smiles)
-                seqs.append(AllChem.GetMorganFingerprintAsBitVect(mol, radius, nBits=1024).ToList())
-            except Exception as e:
-                print(drug)
+    for drug in drugs:
+        try:
+            smiles = drugs[drug]
+            mol = Chem.MolFromSmiles(smiles)
+            seqs.append(AllChem.GetMorganFingerprintAsBitVect(mol, radius, nBits=1024).ToList())
+        except Exception as e:
+            print(drug)
 
-    elif type == 'json':
-        fp = open('./data/{}/{}'.format(dataType, filename))
-        drugs = json.load(fp)
-
-        for drug in drugs:
-            try:
-                smiles = drugs[drug]
-                mol = Chem.MolFromSmiles(smiles)
-                seqs.append(AllChem.GetMorganFingerprintAsBitVect(mol, radius, nBits=1024).ToList())
-            except Exception as e:
-                print(drug)
-
-        if fp != None: fp.close()
+    if fp != None: fp.close()
 
     np.savetxt('./data/{}/drug_ecfps.csv'.format(dataType), seqs, fmt='%d', delimiter=',')
 
@@ -190,4 +173,5 @@ def drug_sim(dataType = 'davis'):
 
 if __name__=='__main__':
     dataType = 'kiba'
-    drug_sim(dataType)
+    protein_embedding(dataType)
+    # drug_sim(dataType)
