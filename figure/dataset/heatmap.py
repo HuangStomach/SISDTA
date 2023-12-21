@@ -4,7 +4,7 @@ import numpy as np
 import sys
 sys.path.append(os.getcwd())
 
-from data.dataset import MultiDataset
+from src.dataset import MultiDataset
 
 def matrix(dataType = 'davis'):
     dataset = MultiDataset(dataType, sim_type='sis')

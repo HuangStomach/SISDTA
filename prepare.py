@@ -7,7 +7,6 @@ import scipy.spatial.distance as distance
 from time import sleep
 from urllib import request
 import re
-import gc
 from transformers import BertModel, BertTokenizer
 from rdkit import Chem
 from rdkit.Chem import AllChem
@@ -34,7 +33,7 @@ def protein_seq():
             print(protein, e)
     np.savetxt('./data/protein/proteins.csv', seqs, fmt='%s', delimiter=',')
 
-def protein_embedding(dataType = 'davis'):
+def protein_embedding(dataType = 'davis', pooling = 'max'):
     seqs = np.loadtxt('./data/{}/protein.csv'.format(dataType), 
         dtype=str, delimiter=',')[:, 2 if dataType == 'davis' else 1]
     tokenizer = BertTokenizer.from_pretrained("Rostlab/prot_bert", do_lower_case=False)
@@ -44,7 +43,7 @@ def protein_embedding(dataType = 'davis'):
     model = model.to(device)
     model = model.eval()
 
-    file = './data/{}/protein_embedding_avg.csv'.format(dataType)
+    file = './data/{}/protein_embedding_{}.csv'.format(dataType, pooling)
     with open(file, 'a+') as f: 
         f.flush
         for seq in seqs:
@@ -62,7 +61,9 @@ def protein_embedding(dataType = 'davis'):
                 seq_emd = embedding[seq_num][1 : seq_len-1]
                 features.append(seq_emd)
             
-            line = ','.join(map(str, np.average(np.array(features), 0)[0]))
+            features = np.array(features)
+            features = np.average(features, 0) if pooling == 'avg' else np.max(features, 0)
+            line = ','.join(map(str, features[0]))
             f.write(line + '\n')
 
 def protein_go(type):

@@ -38,7 +38,7 @@ class Kiba:
         self.p_gos = pd.read_csv(self.p_gos_path, delimiter=',', header=0, index_col=0).to_numpy(float)
         self.p_sim = np.loadtxt(self.p_sim_path, delimiter='\t', dtype=float, comments=None)
 
-        self.p_embeddings = pd.read_csv('./data/kiba/protein_embedding.csv', delimiter=',', header=None, 
-            index_col=0).to_numpy(float)
+        self.p_embeddings = pd.read_csv('./data/kiba/protein_embedding_avg.csv', 
+            delimiter=',', header=None).to_numpy(float)
 
         self.y = np.loadtxt('./data/kiba/Y.txt', delimiter=',', dtype=float, comments=None)

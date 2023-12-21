@@ -10,8 +10,8 @@ from sklearn.model_selection import KFold
 # from rdkit import Chem
 # from rdkit.Chem import AllChem
 
-from .kiba.kiba import Kiba
-from .davis.davis import Davis
+from src.data.kiba import Kiba
+from src.data.davis import Davis
 
 handlers = {
     'kiba': Kiba,
@@ -161,7 +161,6 @@ class MultiDataset(Dataset):
         ]
 
         if not self.new: res.append(self.targets[index])
-        res.append(self.classes[index])
         return res
 
     def __len__(self):

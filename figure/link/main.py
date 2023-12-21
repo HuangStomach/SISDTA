@@ -3,7 +3,7 @@ import json
 import sys
 sys.path.append(os.getcwd())
 
-from data.dataset import MultiDataset
+from src.dataset import MultiDataset
 drugs = ["CHEMBL206783", "CHEMBL206955", "CHEMBL207037", "CHEMBL207130", "CHEMBL207235", "CHEMBL207246"]
 
 data = MultiDataset('kiba', sim_type='sis')

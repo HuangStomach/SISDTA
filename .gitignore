@@ -1,9 +1,9 @@
-log/*.log
 _test*
 output/**/*.csv
 output/**/*.js
 output/**/*.pt
 output/**/*.json
+output/**/*.log
 .DS_Store
 
 # Byte-compiled / optimized / DLL files

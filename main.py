@@ -4,8 +4,8 @@ from torch.utils.data import DataLoader
 from sklearn.metrics import mean_squared_error
 from tqdm import tqdm
 
-from data.dataset import MultiDataset
-from model.gnn import GNN
+from src.dataset import MultiDataset
+from src.model.gnn import GNN
 # from model.supconloss import SupConLoss
 from src.metrics import get_cindex, get_rm2
 from src.args import Args
@@ -37,7 +37,7 @@ if __name__=='__main__':
 
         print('training fold {}...'.format(fold))
         for epoch in range(1, args.epochs + 1):
-            for d_index, p_index, d_vecs, p_embeddings, y, classes in tqdm(trainLoader, leave=False):
+            for d_index, p_index, d_vecs, p_embeddings, y in tqdm(trainLoader, leave=False):
                 optimizer.zero_grad()
                 y_bar, encoded, decoded, feature = model(d_index, p_index, d_vecs, p_embeddings, train)
                 
