@@ -1,8 +1,5 @@
 import pandas as pd
 import numpy as np
-import json
-import os
-from sklearn.model_selection import KFold
 
 class Kiba:
     def __init__(self, train = True, sim_type='sis', d_threshold=0.7, p_threshold=0.7):

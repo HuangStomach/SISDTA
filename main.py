@@ -61,6 +61,7 @@ if __name__=='__main__':
 
                 p = preds.cpu().numpy()
                 l = labels.cpu().numpy()
+                # test_mse = torch.nn.MSELoss(preds, labels).cpu().numpy()
                 test_mse = mean_squared_error(p, l)
                 ci = get_cindex(l, p)
                 rm2 = get_rm2(l, p)

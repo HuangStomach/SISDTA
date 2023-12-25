@@ -1,5 +1,4 @@
 import numpy as np
-from sklearn.metrics import roc_auc_score, cohen_kappa_score
 
 def get_cindex(gt, pred):
     gt_mask = gt.reshape((1, -1)) > gt.reshape((-1, 1))
