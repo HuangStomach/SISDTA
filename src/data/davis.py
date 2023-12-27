@@ -21,7 +21,7 @@ class Davis:
         self.p_gos_path = './data/davis/protein_go_vector.csv'
         self.p_sim_path = './data/davis/target-target_similarities_WS.txt'
 
-    def _load_data(self, setting, fold):
+    def _load_data(self):
         self.d_vecs = np.loadtxt(self.d_vecs_path, delimiter=',', dtype=float, comments=None)
         self.d_ecfps = np.loadtxt(self.d_ecfps_path, delimiter=',', dtype=int, comments=None)
 

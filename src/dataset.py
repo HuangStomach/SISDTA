@@ -20,123 +20,75 @@ handlers = {
 
 class MultiDataset(Dataset):
     def __init__(self, 
-        dataset = 'kiba', train = True, unit = 0.05, 
-        device = 'cpu', sim_type = 'sis', new = False,
-        d_threshold = 0.6, p_threshold = 0.6,
-        setting = 1, fold = 0
+        dataset = 'kiba', train = True, device = 'cpu', 
+        sim_type = 'sis', new = False, d_threshold = 0.6, p_threshold = 0.6
     ):
         # super().__init__(None, transform, pre_transform) # 无需预处理与下载
         print('initalizing {} {} dataset...'.format(dataset, 'train' if train else 'test'))
         self.dataset = dataset
-        self.setting = setting
         self.device = device
         self.train = train
         self.new = new
         self.handler = handlers[dataset](self.train, sim_type, d_threshold, p_threshold)
 
         self._check_exists()
-        self.handler._load_data(setting, fold)
-        self._split(setting, fold)
+        self.handler._load_data()
+        self._split()
 
         self.d_vecs = torch.tensor(self.handler.d_vecs, dtype=torch.float32, device=self.device)
         self.d_ecfps = torch.tensor(self.handler.d_ecfps, dtype=torch.float32, device=self.device)
         self.d_sim = torch.tensor(self.handler.d_sim, dtype=torch.float32, device=self.device)
 
         self.p_gos = torch.tensor(self.handler.p_gos, dtype=torch.float32, device=self.device)
-        # self.p_gos_dim = self.p_gos.size()[1]
-        self.p_sim = torch.tensor(self.handler.p_sim, dtype=torch.float32, device=self.device)
         self.p_embeddings = torch.tensor(self.handler.p_embeddings, dtype=torch.float32, device=self.device)
+        self.p_sim = torch.tensor(self.handler.p_sim, dtype=torch.float32, device=self.device)
 
         self.dsize = self.d_sim.size()[0]
         self.psize = self.p_sim.size()[0]
 
-        y = self.handler.y
-        drugs = self.handler.drugs
-        proteins = self.handler.proteins
+        label = self.handler.y
+        affinity = np.zeros((self.dsize, self.psize))
 
         indexes = []
-        targets = []
-        classes = []
-        for k in range(len(drugs)):
-            i = drugs[k]
-            j = proteins[k]
-            if self.new and np.isnan(y[i][j]):
+        y = []
+        for k in range(len(self.handler.drugs)):
+            i = self.handler.drugs[k]
+            j = self.handler.proteins[k]
+            if self.new and np.isnan(label[i][j]):
                 indexes.append([i, j])
                 continue
-            if np.isnan(y[i][j]): continue
+            if np.isnan(label[i][j]): continue
             indexes.append([i, j])
-            targets.append(y[i][j])
+            y.append(label[i][j])
+            affinity[i][j] = label[i][j]
 
-        # 对比学习所需的分类
-        for v in targets:
-            classes.append(int(v / unit))
-
-        self.classes = torch.tensor(classes, dtype=torch.long, device=self.device)
+        affinity = (affinity - min(y)) / (max(y) - min(y))
+        affinity[affinity < 0] = 0
 
         print('generating similarity graph...')
-        self.d_sim_ei, self.d_sim_ew = self._graph_gen(
-            self.dsize, self.d_sim, self.handler.sim_neighbor_num, self.handler.d_threshold
-        )
-        self.p_sim_ei, self.p_sim_ew = self._graph_gen(
-            self.psize, self.p_sim, self.handler.sim_neighbor_num, self.handler.p_threshold
-        )
+        self.d_ei, self.d_ew = self._graph(self.dsize, self.d_sim, min = self.handler.d_threshold)
+        self.p_ei, self.p_ew = self._graph(self.psize, self.p_sim, min = self.handler.p_threshold)
 
         self.indexes = torch.tensor(indexes, dtype=torch.long, device=self.device)
-        if not new: self.targets = torch.tensor(targets, dtype=torch.float32, device=self.device).view(-1, 1)
+        self.affinity = torch.tensor(affinity, dtype=torch.float32, device=self.device)
+        if not new: self.y = torch.tensor(y, dtype=torch.float32, device=self.device).view(-1, 1)
 
-    def _split(self, setting, fold):
+    def _split(self):
         y_durgs, y_proteins = np.where(np.isnan(self.handler.y) == False)
-        
-        if setting == 1:
-            name = self.handler.train_setting1_path if self.train \
-                else self.handler.test_setting1_path
 
-            with open(name) as f:
-                indices = []
-                if self.train: 
-                    for item in json.load(f): indices.extend(item)
-                else: indices = json.load(f)
-                indices = np.array(indices).flatten()
+        name = self.handler.train_setting1_path if self.train \
+            else self.handler.test_setting1_path
 
-            self.handler.drugs, self.handler.proteins = y_durgs[indices], y_proteins[indices]
-        elif setting == 2: # some drugs unseen
-            dsize = self.handler.d_sim.shape[0]
-            folds = []
-            with open(self.handler.setting2_path) as f:
-                folds = json.load(f)
-            
-            drug_indices = ~np.isin(list(range(dsize)), folds[fold])
-            self.drug_indices = drug_indices
-            if self.train:
-                self.handler.y = self.handler.y[drug_indices]
-                self.handler.d_ecfps = self.handler.d_ecfps[drug_indices]
-                self.handler.d_vecs = self.handler.d_vecs[drug_indices]
-                self.handler.d_sim = self.handler.d_sim[drug_indices][:, drug_indices]
+        with open(name) as f:
+            indices = []
+            if self.train: 
+                for item in json.load(f): indices.extend(item)
+            else: indices = json.load(f)
+            indices = np.array(indices).flatten()
 
-                self.handler.drugs, self.handler.proteins = np.where(np.isnan(self.handler.y) == False)
-            else:
-                indices = np.isin(y_durgs, folds[fold])
-                self.handler.drugs, self.handler.proteins = y_durgs[indices], y_proteins[indices]
-        elif setting == 3: # some targets unseen
-            psize = self.handler.p_sim.shape[0]
-            folds = []
-            with open(self.handler.setting3_path) as f:
-                folds = json.load(f)
+        self.handler.drugs, self.handler.proteins = y_durgs[indices], y_proteins[indices]
 
-            protein_indices = ~np.isin(list(range(psize)), folds[fold])
-            self.protein_indices = protein_indices
-            if self.train:
-                self.handler.y = self.handler.y[:, protein_indices]
-                self.handler.p_gos = self.handler.p_gos[protein_indices]
-                self.handler.p_embeddings = self.handler.p_embeddings[protein_indices]
-                self.handler.p_sim = self.handler.p_sim[protein_indices][:, protein_indices]
-                
-                self.handler.drugs, self.handler.proteins = np.where(np.isnan(self.handler.y) == False)
-            else:
-                indices = np.isin(y_proteins, folds[fold])
-                self.drugs, self.proteins = y_durgs[indices], y_proteins[indices]
-
-    def _graph_gen(self, size, matrix, neighbor_num=5, min=0.5, max=1.0):
+    def _graph(self, size, matrix, neighbor_num=5, min=0.5, max=1.0):
         edge_index = []
         edge_weight = []
         
@@ -160,7 +112,7 @@ class MultiDataset(Dataset):
             self.d_vecs[dindex], self.p_embeddings[pindex], 
         ]
 
-        if not self.new: res.append(self.targets[index])
+        if not self.new: res.append(self.y[index])
         return res
 
     def __len__(self):
@@ -210,8 +162,3 @@ class MultiDataset(Dataset):
             for _, test in kf.split(list(range(psize))):
                 folds.append(list(test))
             with open(self.handler.setting3_path, "w") as f: json.dump(folds, f, default=int)
-
-    @staticmethod
-    def fold_size(setting):
-        if setting == 1: return 1
-        else: return 5
