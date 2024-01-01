@@ -36,12 +36,11 @@ if __name__=='__main__':
     for epoch in range(1, args.epochs + 1):
         for d_index, p_index, d_vecs, p_embeddings, y in tqdm(trainLoader, leave=False):
             optimizer.zero_grad()
-            y_bar = model(d_index, p_index, d_vecs, p_embeddings, train)
+            y_bar, encoded, decoded, feature = model(d_index, p_index, d_vecs, p_embeddings, train)
             
             train_mse = mseLoss(y, y_bar)
-            trainLoss = train_mse
-            # + \
-            #    args.lambda_1 * aeMseLoss(decoded, feature)
+            trainLoss = train_mse + \
+                args.lambda_1 * aeMseLoss(decoded, feature)
                 # args.lambda_2 * supConLoss(encoded, classes) + \
             trainLoss.backward()
 
@@ -53,7 +52,7 @@ if __name__=='__main__':
             preds = torch.tensor([], device=args.device)
             labels = torch.tensor([], device=args.device)
             for d_index, p_index, d_vecs, p_embeddings, y in testLoader:
-                y_bar = model(d_index, p_index, d_vecs, p_embeddings, test)
+                y_bar, _, _, _ = model(d_index, p_index, d_vecs, p_embeddings, test)
                 preds = torch.cat((preds, y_bar.flatten()), dim=0)
                 labels = torch.cat((labels, y.flatten()), dim=0)
 
