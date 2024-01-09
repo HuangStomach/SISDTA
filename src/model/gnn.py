@@ -36,6 +36,7 @@ class GNN(nn.Module):
             (GCNConv(1024, 1024), 'x, edge_index, edge_weight -> x1'),
             nn.LeakyReLU(),
         ])
+        
         self.gos_sim = Sequential('x, edge_index, edge_weight', [
             (GCNConv(p_gos_dim, 1024), 'x, edge_index, edge_weight -> x1'),
             nn.LeakyReLU(),

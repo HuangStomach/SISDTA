@@ -4,7 +4,7 @@ from sklearn.metrics import mean_squared_error
 from src.metrics import get_cindex, get_rm2
 from tqdm import tqdm
 
-from model.gnn import GNN
+from src.model.gnn import GNN
 from src.dataset import MultiDataset
 from src.args import Args
 

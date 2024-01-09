@@ -66,11 +66,17 @@
         { id: 'bottomleft', left: '7%', bottom:'7%', width: '40%', height: '40%' },
         { id: 'bottomright', right: '7%', bottom:'7%', width: '40%', height: '40%' },
       ],
+      // xAxis: [
+      //   xAxis(0, 'SIS similarity matrix of Davis', 'topleft'),
+      //   xAxis(1, 'Tanimoto similarity matrix of Davis', 'topright'),
+      //   xAxis(2, 'SIS similarity matrix of KIBA', 'bottomleft'),
+      //   xAxis(3, 'Tanimoto similarity matrix of KIBA', 'bottomright'),
+      // ],
       xAxis: [
-        xAxis(0, 'SIS similarity matrix of Davis', 'topleft'),
-        xAxis(1, 'Tanimoto similarity matrix of Davis', 'topright'),
-        xAxis(2, 'SIS similarity matrix of KIBA', 'bottomleft'),
-        xAxis(3, 'Tanimoto similarity matrix of KIBA', 'bottomright'),
+        xAxis(0, 'Davis 结构包容相似性矩阵', 'topleft'),
+        xAxis(1, 'Davis 谷本相似性矩阵', 'topright'),
+        xAxis(2, 'KIBA 结构包容相似性矩阵', 'bottomleft'),
+        xAxis(3, 'KIBA 谷本相似性矩阵', 'bottomright'),
       ],
       yAxis: [{
         type: 'category',
