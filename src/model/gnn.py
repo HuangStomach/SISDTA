@@ -43,8 +43,8 @@ class GNN(nn.Module):
         ])
 
     def forward(self, d_index, p_index, d_vecs, p_embeddings, dataset):
-        ecfps = self.ecfps_sim(dataset.d_ecfps, dataset.d_sim_ei, dataset.d_sim_ew)[d_index]
-        gos = self.gos_sim(dataset.p_gos, dataset.p_sim_ei, dataset.p_sim_ew)[p_index]
+        ecfps = self.ecfps_sim(dataset.d_ecfps, dataset.d_ei, dataset.d_ew)[d_index]
+        gos = self.gos_sim(dataset.p_gos, dataset.p_ei, dataset.p_ew)[p_index]
 
         feature = torch.cat((d_vecs, p_embeddings, ecfps, gos), dim = 1)
         encoded = self.encoder(feature)
