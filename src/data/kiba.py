@@ -33,7 +33,11 @@ class Kiba:
         self.d_sim = np.loadtxt(d_sim_path, delimiter=delimiter, dtype=float, comments=None)
 
         self.p_gos = pd.read_csv(self.p_gos_path, delimiter=',', header=0, index_col=0).to_numpy(float)
-        self.p_sim = np.loadtxt(self.p_sim_path, delimiter='\t', dtype=float, comments=None)
+        if self.sim_type != 'default':
+            p_sim_path = './data/kiba/protein_{}.csv'.format(self.sim_type)
+            self.p_sim = np.loadtxt(p_sim_path, delimiter=',', dtype=float, comments=None)
+        else:
+            self.p_sim = np.loadtxt(self.p_sim_path, delimiter='\t', dtype=float, comments=None)
 
         self.p_embeddings = pd.read_csv('./data/kiba/protein_embedding_avg.csv', 
             delimiter=',', header=None).to_numpy(float)

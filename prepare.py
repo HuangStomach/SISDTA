@@ -107,6 +107,39 @@ def protein_go_vector(type = 'davis'):
 
     df.to_csv('./data/{}/protein_go_vector.csv'.format(type), header=False, index=False)
 
+def protein_sim(dataType = 'davis'):
+    protein_gos =  pd.read_csv('./data/{}/protein_go_vector.csv'.format(dataType), 
+        delimiter=',', header=0, index_col=0).to_numpy(int)
+    protein_count = protein_gos.shape[0]
+
+    sis = np.zeros((protein_count, protein_count))
+    cosine = np.zeros((protein_count, protein_count))
+    pearson = np.zeros((protein_count, protein_count))
+    euclidean = np.zeros((protein_count, protein_count))
+    jaccard = np.zeros((protein_count, protein_count))
+
+    for i in range(protein_count):
+        for j in range(protein_count):
+            # sis
+            inter = np.sum(np.bitwise_and(protein_gos[i], protein_gos[j]))
+            sis[i][j] = 1 - ((np.sum(protein_gos[j]) - inter) / np.sum(protein_gos[j]))
+            # cosine
+            cosine[i][j] = 1 - distance.cosine(protein_gos[i], protein_gos[j])
+            # pearson
+            pearson[i][j] = 1 - distance.correlation(protein_gos[i], protein_gos[j])
+            # euclidean
+            euclidean[i][j] = distance.euclidean(protein_gos[i], protein_gos[j])
+            # jaccard
+            jaccard[i][j] = 1 - distance.jaccard(protein_gos[i], protein_gos[j])
+
+    np.savetxt('./data/{}/protein_sis.csv'.format(dataType), sis, fmt='%s', delimiter=',')
+    np.savetxt('./data/{}/protein_cosine.csv'.format(dataType), cosine, fmt='%s', delimiter=',')
+    np.savetxt('./data/{}/protein_pearson.csv'.format(dataType), pearson, fmt='%s', delimiter=',')
+    euclidean_max, euclidean_min = euclidean.max(axis=0), euclidean.min(axis=0)
+    euclidean = 1 - ((euclidean - euclidean_min) / (euclidean_max - euclidean_min))
+    np.savetxt('./data/{}/protein_euclidean.csv'.format(dataType), euclidean, fmt='%s', delimiter=',')
+    np.savetxt('./data/{}/protein_jaccard.csv'.format(dataType), jaccard, fmt='%s', delimiter=',')
+
 def drug_smile():
     seqs = []
     DTI = pd.read_csv('./data/DTI.csv')
@@ -174,5 +207,5 @@ def drug_sim(dataType = 'davis'):
 
 if __name__=='__main__':
     dataType = 'kiba'
-    protein_embedding(dataType)
-    # drug_sim(dataType)
+    protein_sim('kiba')
+    protein_sim('davis')
