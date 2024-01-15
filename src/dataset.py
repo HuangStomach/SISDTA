@@ -112,6 +112,9 @@ class MultiDataset(Dataset):
         return self.indexes.size(dim=0)
 
     def _check_exists(self):
+        output_dir = './output/{}/'.format(self.dataset)
+        if not os.path.exists(output_dir):
+            os.makedirs(output_dir)
         pass
         print('checking data file exists...')
         if not os.path.exists(self.handler.d_ecfps_path):
