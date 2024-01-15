@@ -9,7 +9,6 @@ from src.dataset import MultiDataset
 from src.model.gnn import GNN
 from src.metrics import get_cindex, get_rm2
 from src.args import Args
-# from src.hook import Hook
 
 if __name__=='__main__':
     argparse = Args(action='train')
@@ -28,9 +27,7 @@ if __name__=='__main__':
 
     mseLoss = nn.MSELoss()
     aeMseLoss = nn.MSELoss()
-    # hook = Hook(dataset=args.dataset, sim_type=args.sim_type)
     model = GNN().to(args.device)
-    # model.ecfps_sim.register_forward_hook(hook.record('ecfps_sim'))
     optimizer = torch.optim.Adam(model.parameters(), lr=args.learning_rate)
 
     print('training...')
@@ -42,7 +39,6 @@ if __name__=='__main__':
             train_mse = mseLoss(y, y_bar)
             trainLoss = train_mse + \
                 args.lambda_1 * aeMseLoss(decoded, feature)
-                # args.lambda_2 * supConLoss(encoded, classes) + \
             trainLoss.backward()
 
             optimizer.step()
@@ -59,7 +55,6 @@ if __name__=='__main__':
 
             p = preds.cpu().numpy()
             l = labels.cpu().numpy()
-            # test_mse = torch.nn.MSELoss(preds, labels).cpu().numpy()
             test_mse = mean_squared_error(p, l)
             ci = get_cindex(l, p)
             rm2 = get_rm2(l, p)
@@ -67,7 +62,6 @@ if __name__=='__main__':
                 epoch, trainLoss.item(), train_mse.item(), test_mse, ci, rm2
             ))
 
-    # hook.save()
     torch.save(model.state_dict(), './output/{}/{}_model.pt'.format(args.dataset, args.sim_type))
     np.savetxt('./output/{}/{}_ecfps.csv'.format(args.dataset, args.sim_type), 
         ecfps, fmt='%s', delimiter=',')

@@ -47,8 +47,6 @@ class MultiDataset(Dataset):
         self.psize = self.p_sim.size()[0]
 
         label = self.handler.y
-        affinity = np.zeros((self.dsize, self.psize))
-
         indexes = []
         y = []
         for k in range(len(self.handler.drugs)):
@@ -60,17 +58,12 @@ class MultiDataset(Dataset):
             if np.isnan(label[i][j]): continue
             indexes.append([i, j])
             y.append(label[i][j])
-            affinity[i][j] = label[i][j]
-
-        affinity = (affinity - min(y)) / (max(y) - min(y))
-        affinity[affinity < 0] = 0
 
         print('generating similarity graph...')
         self.d_ei, self.d_ew = self._graph(self.dsize, self.d_sim, min = self.handler.d_threshold)
         self.p_ei, self.p_ew = self._graph(self.psize, self.p_sim, min = self.handler.p_threshold)
 
         self.indexes = torch.tensor(indexes, dtype=torch.long, device=self.device)
-        self.affinity = torch.tensor(affinity, dtype=torch.float32, device=self.device)
         if not new: self.y = torch.tensor(y, dtype=torch.float32, device=self.device).view(-1, 1)
 
     def _split(self):
