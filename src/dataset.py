@@ -38,10 +38,12 @@ class MultiDataset(Dataset):
         self.d_vecs = torch.tensor(self.handler.d_vecs, dtype=torch.float32, device=self.device)
         self.d_ecfps = torch.tensor(self.handler.d_ecfps, dtype=torch.float32, device=self.device)
         self.d_sim = torch.tensor(self.handler.d_sim, dtype=torch.float32, device=self.device)
+        self.d_sim = torch.where(self.d_sim > self.handler.d_threshold, self.d_sim, 0.)
 
         self.p_gos = torch.tensor(self.handler.p_gos, dtype=torch.float32, device=self.device)
         self.p_embeddings = torch.tensor(self.handler.p_embeddings, dtype=torch.float32, device=self.device)
         self.p_sim = torch.tensor(self.handler.p_sim, dtype=torch.float32, device=self.device)
+        self.p_sim = torch.where(self.p_sim > self.handler.p_threshold, self.p_sim, 0.)
 
         self.dsize = self.d_sim.size()[0]
         self.psize = self.p_sim.size()[0]
@@ -60,8 +62,8 @@ class MultiDataset(Dataset):
             y.append(label[i][j])
 
         print('generating similarity graph...')
-        self.d_ei, self.d_ew = self._graph(self.dsize, self.d_sim, min = self.handler.d_threshold)
-        self.p_ei, self.p_ew = self._graph(self.psize, self.p_sim, min = self.handler.p_threshold)
+        # self.d_ei, self.d_ew = self._graph(self.dsize, self.d_sim, min = self.handler.d_threshold)
+        # self.p_ei, self.p_ew = self._graph(self.psize, self.p_sim, min = self.handler.p_threshold)
 
         self.indexes = torch.tensor(indexes, dtype=torch.long, device=self.device)
         if not new: self.y = torch.tensor(y, dtype=torch.float32, device=self.device).view(-1, 1)

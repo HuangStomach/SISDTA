@@ -1,6 +1,8 @@
 import torch
 import torch.nn as nn
-from torch_geometric.nn import Sequential, GCNConv
+import torch.nn.functional as F
+from src.model.layer.gcn import GCN
+# from torch_geometric.nn import Sequential, GCNConv
 
 class GNN(nn.Module):
     def __init__(self):
@@ -32,20 +34,26 @@ class GNN(nn.Module):
             nn.Linear(256, 1),
         )
 
-        self.ecfps_sim = Sequential('x, edge_index, edge_weight', [
-            (GCNConv(1024, 1024), 'x, edge_index, edge_weight -> x1'),
-            nn.LeakyReLU(),
-        ])
+        self.ecfps_sim = GCN(1024, 1024)
         
-        self.gos_sim = Sequential('x, edge_index, edge_weight', [
-            (GCNConv(-1, 1024), 'x, edge_index, edge_weight -> x1'),
-            nn.LeakyReLU(),
-        ])
+        # self.ecfps_sim = Sequential('x, edge_index, edge_weight', [
+        #     (GCNConv(1024, 1024), 'x, edge_index, edge_weight -> x1'),
+        #     nn.LeakyReLU(),
+        # ])
+        
+        self.gos_sim = GCN(2812, 1024)
+
+        # self.gos_sim = Sequential('x, edge_index, edge_weight', [
+        #     (GCNConv(-1, 1024), 'x, edge_index, edge_weight -> x1'),
+        #     nn.LeakyReLU(),
+        # ])
 
     def forward(self, d_index, p_index, d_vecs, p_embeddings, dataset):
-        ecfps = self.ecfps_sim(dataset.d_ecfps, dataset.d_ei, dataset.d_ew)
+        # ecfps = self.ecfps_sim(dataset.d_ecfps, dataset.d_ei, dataset.d_ew)
+        ecfps = F.leaky_relu(self.ecfps_sim(dataset.d_ecfps, dataset.d_sim))
         batch_fps = ecfps[d_index]
-        gos = self.gos_sim(dataset.p_gos, dataset.p_ei, dataset.p_ew)[p_index]
+        gos = F.leaky_relu(self.gos_sim(dataset.p_gos, dataset.p_sim))[p_index]
+        # gos = self.gos_sim(dataset.p_gos, dataset.p_ei, dataset.p_ew)[p_index]
 
         feature = torch.cat((d_vecs, batch_fps, p_embeddings, gos), dim = 1)
         encoded = self.encoder(feature)

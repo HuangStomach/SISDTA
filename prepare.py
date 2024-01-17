@@ -92,6 +92,8 @@ def protein_go(type):
             print(protein, e)
             seqs.append([protein, 'ERROR'])
 
+    np.savetxt('./data/{}/protein_go.csv'.format(type), seqs, fmt='%s', delimiter=',')
+
 def protein_go_vector(type = 'davis'):
     protein_go = np.loadtxt('./data/{}/protein_go.csv'.format(type), dtype=str, delimiter=',')
     proteins = protein_go[:, 0]
@@ -207,5 +209,5 @@ def drug_sim(dataType = 'davis'):
 
 if __name__=='__main__':
     dataType = 'kiba'
-    protein_sim('kiba')
-    protein_sim('davis')
+    # protein_go('kiba')
+    protein_go('davis')
