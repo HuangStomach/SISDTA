@@ -2,7 +2,6 @@ import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
 from sklearn.metrics import mean_squared_error
-import numpy as np
 from tqdm import tqdm
 
 from src.dataset import MultiDataset
@@ -34,7 +33,7 @@ if __name__=='__main__':
     for epoch in range(1, args.epochs + 1):
         for d_index, p_index, d_vecs, p_embeddings, y in tqdm(trainLoader, leave=False):
             optimizer.zero_grad()
-            y_bar, encoded, decoded, feature, ecfps = model(d_index, p_index, d_vecs, p_embeddings, train)
+            y_bar, encoded, decoded, feature = model(d_index, p_index, d_vecs, p_embeddings, train)
             
             train_mse = mseLoss(y, y_bar)
             trainLoss = train_mse + \
@@ -49,7 +48,7 @@ if __name__=='__main__':
             preds = torch.tensor([], device=args.device)
             labels = torch.tensor([], device=args.device)
             for d_index, p_index, d_vecs, p_embeddings, y in testLoader:
-                y_bar, _, _, _, _ = model(d_index, p_index, d_vecs, p_embeddings, test)
+                y_bar, _, _, _, = model(d_index, p_index, d_vecs, p_embeddings, test)
                 preds = torch.cat((preds, y_bar.flatten()), dim=0)
                 labels = torch.cat((labels, y.flatten()), dim=0)
 
@@ -58,11 +57,8 @@ if __name__=='__main__':
             test_mse = mean_squared_error(p, l)
             ci = get_cindex(l, p)
             rm2 = get_rm2(l, p)
-            print('Epoch: {} train loss: {:.6f} train mse: {:.6f} test mse: {:.6f} ci: {:.6f} rm2: {:.6f}'.format(
-                epoch, trainLoss.item(), train_mse.item(), test_mse, ci, rm2
-            ))
+            print('Epoch: {} train loss: {:.6f} train mse: {:.6f} test mse: {:.6f} ci: {:.6f} rm2: {:.6f}'
+                  .format(epoch, trainLoss.item(), train_mse.item(), test_mse, ci, rm2))
 
     torch.save(model.state_dict(), './output/{}/{}_model.pt'.format(args.dataset, args.sim_type))
-    np.savetxt('./output/{}/{}_ecfps.csv'.format(args.dataset, args.sim_type), 
-        ecfps.cpu().detach().numpy(), fmt='%s', delimiter=',')
     argparse.print()

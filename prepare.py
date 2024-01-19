@@ -102,12 +102,12 @@ def protein_go_vector(type = 'davis'):
         for v in go_vectors.split(";"):
             go_set.add(v)
     
-    df = pd.DataFrame(None, index=proteins, columns=go_set).fillna(0)
+    df = pd.DataFrame(None, index=proteins, columns=list(go_set)).fillna(0)
     for i, protein in enumerate(proteins):
         for go in protein_go[i][1].split(";"):
             df.loc[protein, go] = 1
 
-    df.to_csv('./data/{}/protein_go_vector.csv'.format(type), header=False, index=False)
+    df.to_csv('./data/{}/protein_go_vector.csv'.format(type))
 
 def protein_sim(dataType = 'davis'):
     protein_gos =  pd.read_csv('./data/{}/protein_go_vector.csv'.format(dataType), 
@@ -209,5 +209,6 @@ def drug_sim(dataType = 'davis'):
 
 if __name__=='__main__':
     dataType = 'kiba'
-    # protein_go('kiba')
-    protein_go('davis')
+    # protein_go_vector('kiba')
+    protein_go('kiba')
+    protein_go_vector('kiba')
