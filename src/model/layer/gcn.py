@@ -1,7 +1,12 @@
 import math
 import torch
-from torch.nn.parameter import Parameter
+from torch.nn.parameter import Parameter, UninitializedParameter
 from torch.nn.modules.module import Module
+
+def is_uninitialized_parameter(x) -> bool:
+    if not hasattr(torch.nn.parameter, 'UninitializedParameter'):
+        return False
+    return isinstance(x, UninitializedParameter)
 
 class GCN(Module):
     """
@@ -12,7 +17,11 @@ class GCN(Module):
         super(GCN, self).__init__()
         self.in_features = in_features
         self.out_features = out_features
-        self.weight = Parameter(torch.FloatTensor(in_features, out_features))
+        if in_features > 0:
+            self.weight = Parameter(torch.FloatTensor(in_features, out_features))
+        else:
+            self.weight = UninitializedParameter()
+
         if bias:
             self.bias = Parameter(torch.FloatTensor(out_features))
         else:
@@ -20,12 +29,19 @@ class GCN(Module):
         self.reset_parameters()
 
     def reset_parameters(self):
+        if is_uninitialized_parameter(self.weight):
+            return
         stdv = 1. / math.sqrt(self.weight.size(1))
         self.weight.data.uniform_(-stdv, stdv)
         if self.bias is not None:
             self.bias.data.uniform_(-stdv, stdv)
 
     def forward(self, input, adj):
+        if is_uninitialized_parameter(self.weight):
+            self.in_features = input[0].size(-1)
+            self.weight.materialize((self.in_features, self.out_features), dtype=torch.float)
+            self.reset_parameters()
+    
         support = torch.mm(input, self.weight)
         output = torch.spmm(adj, support)
         if self.bias is not None:
