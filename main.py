@@ -9,17 +9,15 @@ from src.model.gnn import GNN
 from src.metrics import get_cindex, get_rm2
 from src.args import Args
 
-if __name__=='__main__':
-    argparse = Args(action='train')
-    args = argparse.parse_args()
+def train(args, fold):
 
     train = MultiDataset(args.dataset,
-        device=args.device, sim_type=args.sim_type,
-        d_threshold=args.d_threshold, p_threshold=args.p_threshold,
+        device=args.device, sim_type=args.sim_type, setting=args.setting,
+        d_threshold=args.d_threshold, p_threshold=args.p_threshold, fold=fold,
     )
     test = MultiDataset(args.dataset, train=False, 
-        device=args.device, sim_type=args.sim_type,
-        d_threshold=args.d_threshold, p_threshold=args.p_threshold,
+        device=args.device, sim_type=args.sim_type, setting=args.setting,
+        d_threshold=args.d_threshold, p_threshold=args.p_threshold, fold=fold,
     )
     trainLoader = DataLoader(train, batch_size=args.batch_size, shuffle=True)
     testLoader = DataLoader(test, batch_size=args.batch_size, shuffle=False)
@@ -29,7 +27,7 @@ if __name__=='__main__':
     model = GNN().to(args.device)
     optimizer = torch.optim.Adam(model.parameters(), lr=args.learning_rate)
 
-    print('training...')
+    print('training fold {}...'.format(fold))
     for epoch in range(1, args.epochs + 1):
         for d_index, p_index, d_vecs, p_embeddings, y in tqdm(trainLoader, leave=False):
             optimizer.zero_grad()
@@ -57,8 +55,21 @@ if __name__=='__main__':
             test_mse = mean_squared_error(p, l)
             ci = get_cindex(l, p)
             rm2 = get_rm2(l, p)
-            print('Epoch: {} train loss: {:.6f} train mse: {:.6f} test mse: {:.6f} ci: {:.6f} rm2: {:.6f}'
-                  .format(epoch, trainLoss.item(), train_mse.item(), test_mse, ci, rm2))
+            result = 'Fold: {} Epoch: {} train loss: {:.6f} train mse: {:.6f} test mse: {:.6f} ci: {:.6f} rm2: {:.6f}'.format(fold, epoch, trainLoss.item(), train_mse.item(), test_mse, ci, rm2)
+            print(result)
+            
 
     torch.save(model.state_dict(), './output/{}/{}_model.pt'.format(args.dataset, args.sim_type))
-    argparse.print()
+    return result
+
+
+if __name__=='__main__':
+    argparse = Args(action='train')
+    args = argparse.parse_args()
+
+    for fold in range(MultiDataset.fold_size(args.setting)):
+        with open('./output/{}/{}_folds.log'.format(args.dataset, args.sim_type), mode='a') as file:
+            # 将文本写入文件
+            result = train(args, fold)
+            file.write(result + '\n')
+            file.write(str(argparse.parse_args()) + '\n')

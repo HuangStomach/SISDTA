@@ -11,27 +11,27 @@ from transformers import BertModel, BertTokenizer
 from rdkit import Chem
 from rdkit.Chem import AllChem
 
-def protein_seq():
-    DTI = pd.read_csv('./data/DTI.csv')
-    seqs = np.loadtxt('./data/protein/proteins.csv', dtype=str)
-    can_download = False
-
-    DTI.dropna(subset=['ACT_VALUE'], inplace=True)
-    proteins = DTI['ACCESSION'].str.split('|', expand=True).stack().unique()
-
+def protein_seq(type = 'davis'):
+    proteins = np.loadtxt('./data/{}/protein.csv'.format(type), dtype=str, delimiter=',')
+    seqs = []
 
     for protein in proteins:
-        # if protein == breakpoint: can_download = True
-        # if can_download == False: continue
-
         try:
-            res = requests.get('https://www.ebi.ac.uk/proteins/api/proteins/{}'.format(protein))
+            res = requests.get('https://www.ebi.ac.uk/proteins/api/proteins/{}'.format(protein[0]))
             content = json.loads(res.text)
-            seqs.append([protein, content['sequence']['sequence']])
-            print(protein, 'OK')
+            content['sequence']['sequence']
+
+            seq = []
+            seq.append(protein[0])
+            if type == 'davis': seq.append(protein[1])
+            seq.append(content['sequence']['sequence'])
+            seqs.append(seq)
+            print(protein[0], 'OK')
         except Exception as e:
-            print(protein, e)
-    np.savetxt('./data/protein/proteins.csv', seqs, fmt='%s', delimiter=',')
+            print(protein[0], e)
+            seq.append([protein[0], 'ERROR'])
+
+    np.savetxt('./data/{}/protein.csv'.format(type), seqs, fmt='%s', delimiter=',')
 
 def protein_embedding(dataType = 'davis', pooling = 'max'):
     seqs = np.loadtxt('./data/{}/protein.csv'.format(dataType), 
@@ -70,7 +70,6 @@ def protein_go(type):
     seqs = []
     protein_dict = np.loadtxt('./data/{}/protein.csv'.format(type), dtype=str, delimiter=',')[:, 0]
     protein_url = 'https://rest.uniprot.org/beta/uniprotkb/{}.json'
-
     for protein in protein_dict:
         sleep(1)
         try:
@@ -91,8 +90,8 @@ def protein_go(type):
         except Exception as e:
             print(protein, e)
             seqs.append([protein, 'ERROR'])
-
-    np.savetxt('./data/{}/protein_go.csv'.format(type), seqs, fmt='%s', delimiter=',')
+    print(seqs)
+    #np.savetxt('./data/{}/protein_go.csv'.format(type), seqs, fmt='%s', delimiter=',')
 
 def protein_go_vector(type = 'davis'):
     protein_go = np.loadtxt('./data/{}/protein_go.csv'.format(type), dtype=str, delimiter=',')
@@ -115,10 +114,10 @@ def protein_sim(dataType = 'davis'):
     protein_count = protein_gos.shape[0]
 
     sis = np.zeros((protein_count, protein_count))
-    cosine = np.zeros((protein_count, protein_count))
-    pearson = np.zeros((protein_count, protein_count))
-    euclidean = np.zeros((protein_count, protein_count))
-    jaccard = np.zeros((protein_count, protein_count))
+    # cosine = np.zeros((protein_count, protein_count))
+    # pearson = np.zeros((protein_count, protein_count))
+    # euclidean = np.zeros((protein_count, protein_count))
+    # jaccard = np.zeros((protein_count, protein_count))
 
     for i in range(protein_count):
         for j in range(protein_count):
@@ -126,21 +125,21 @@ def protein_sim(dataType = 'davis'):
             inter = np.sum(np.bitwise_and(protein_gos[i], protein_gos[j]))
             sis[i][j] = 1 - ((np.sum(protein_gos[j]) - inter) / np.sum(protein_gos[j]))
             # cosine
-            cosine[i][j] = 1 - distance.cosine(protein_gos[i], protein_gos[j])
+            # cosine[i][j] = 1 - distance.cosine(protein_gos[i], protein_gos[j])
             # pearson
-            pearson[i][j] = 1 - distance.correlation(protein_gos[i], protein_gos[j])
+            # pearson[i][j] = 1 - distance.correlation(protein_gos[i], protein_gos[j])
             # euclidean
-            euclidean[i][j] = distance.euclidean(protein_gos[i], protein_gos[j])
+            # euclidean[i][j] = distance.euclidean(protein_gos[i], protein_gos[j])
             # jaccard
-            jaccard[i][j] = 1 - distance.jaccard(protein_gos[i], protein_gos[j])
+            # jaccard[i][j] = 1 - distance.jaccard(protein_gos[i], protein_gos[j])
 
     np.savetxt('./data/{}/protein_sis.csv'.format(dataType), sis, fmt='%s', delimiter=',')
-    np.savetxt('./data/{}/protein_cosine.csv'.format(dataType), cosine, fmt='%s', delimiter=',')
-    np.savetxt('./data/{}/protein_pearson.csv'.format(dataType), pearson, fmt='%s', delimiter=',')
-    euclidean_max, euclidean_min = euclidean.max(axis=0), euclidean.min(axis=0)
-    euclidean = 1 - ((euclidean - euclidean_min) / (euclidean_max - euclidean_min))
-    np.savetxt('./data/{}/protein_euclidean.csv'.format(dataType), euclidean, fmt='%s', delimiter=',')
-    np.savetxt('./data/{}/protein_jaccard.csv'.format(dataType), jaccard, fmt='%s', delimiter=',')
+    # np.savetxt('./data/{}/protein_cosine.csv'.format(dataType), cosine, fmt='%s', delimiter=',')
+    # np.savetxt('./data/{}/protein_pearson.csv'.format(dataType), pearson, fmt='%s', delimiter=',')
+    # euclidean_max, euclidean_min = euclidean.max(axis=0), euclidean.min(axis=0)
+    # euclidean = 1 - ((euclidean - euclidean_min) / (euclidean_max - euclidean_min))
+    # np.savetxt('./data/{}/protein_euclidean.csv'.format(dataType), euclidean, fmt='%s', delimiter=',')
+    # np.savetxt('./data/{}/protein_jaccard.csv'.format(dataType), jaccard, fmt='%s', delimiter=',')
 
 def drug_smile():
     seqs = []
@@ -210,5 +209,6 @@ def drug_sim(dataType = 'davis'):
 if __name__=='__main__':
     dataType = 'kiba'
     # protein_go_vector('kiba')
-    protein_go('kiba')
-    protein_go_vector('kiba')
+    protein_seq('davis')
+    # protein_go_vector('davis')
+    # protein_sim('davis')
