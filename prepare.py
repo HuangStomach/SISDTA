@@ -8,6 +8,7 @@ from time import sleep
 from urllib import request
 import re
 from transformers import BertModel, BertTokenizer
+import deepchem as dc
 from rdkit import Chem
 from rdkit.Chem import AllChem
 
@@ -33,9 +34,9 @@ def protein_seq(type = 'davis'):
 
     np.savetxt('./data/{}/protein.csv'.format(type), seqs, fmt='%s', delimiter=',')
 
-def protein_embedding(dataType = 'davis', pooling = 'max'):
+def protein_embedding(dataType = 'davis', pooling = 'avg'):
     seqs = np.loadtxt('./data/{}/protein.csv'.format(dataType), 
-        dtype=str, delimiter=',')[:, 2 if dataType == 'davis' else 1]
+        dtype=str, delimiter=',')[:, 1 if dataType == 'kiba' else 2]
     tokenizer = BertTokenizer.from_pretrained("Rostlab/prot_bert", do_lower_case=False)
     model = BertModel.from_pretrained("Rostlab/prot_bert")
 
@@ -70,6 +71,7 @@ def protein_go(type):
     seqs = []
     protein_dict = np.loadtxt('./data/{}/protein.csv'.format(type), dtype=str, delimiter=',')[:, 0]
     protein_url = 'https://rest.uniprot.org/beta/uniprotkb/{}.json'
+
     for protein in protein_dict:
         sleep(1)
         try:
@@ -90,8 +92,8 @@ def protein_go(type):
         except Exception as e:
             print(protein, e)
             seqs.append([protein, 'ERROR'])
-    print(seqs)
-    #np.savetxt('./data/{}/protein_go.csv'.format(type), seqs, fmt='%s', delimiter=',')
+            
+    np.savetxt('./data/{}/protein_go.csv'.format(type), seqs, fmt='%s', delimiter=',')
 
 def protein_go_vector(type = 'davis'):
     protein_go = np.loadtxt('./data/{}/protein_go.csv'.format(type), dtype=str, delimiter=',')
@@ -159,30 +161,46 @@ def drug_smile():
 def drug_ecfps(dataType = 'davis', filename = 'ligands_iso.json'):
     radius = 4
     seqs = []
-    fp = open('./data/{}/{}'.format(dataType, filename))
-    drugs = json.load(fp)
+    # fp = open('./data/{}/{}'.format(dataType, filename))
+    # drugs = json.load(fp)
 
+    # for drug in drugs:
+    #     try:
+    #         smiles = drugs[drug]
+    #         mol = Chem.MolFromSmiles(smiles)
+    #         seqs.append(AllChem.GetMorganFingerprintAsBitVect(mol, radius, nBits=1024).ToList())
+    #     except Exception as e:
+    #         print(drug)
+
+    # if fp != None: fp.close()
+    drugs = np.loadtxt('./data/metz/drug.csv', dtype=str, delimiter=',', comments=None)
+    
     for drug in drugs:
         try:
-            smiles = drugs[drug]
+            smiles = drug[1]
             mol = Chem.MolFromSmiles(smiles)
             seqs.append(AllChem.GetMorganFingerprintAsBitVect(mol, radius, nBits=1024).ToList())
         except Exception as e:
-            print(drug)
-
-    if fp != None: fp.close()
+            print(drug[0], e)
 
     np.savetxt('./data/{}/drug_ecfps.csv'.format(dataType), seqs, fmt='%d', delimiter=',')
+
+    print('generating drug vectors...')
+    smiles = [drug[1] for drug in drugs]
+    featurizer = dc.feat.Mol2VecFingerprint()
+    features = featurizer.featurize(smiles)
+
+    np.savetxt('./data/metz/drug_vec.csv', features, fmt='%s', delimiter=',')
 
 def drug_sim(dataType = 'davis'):
     drug_ecfps = np.loadtxt('./data/{}/drug_ecfps.csv'.format(dataType), delimiter=',', dtype=int, comments=None)
     drug_count = drug_ecfps.shape[0]
 
     sis = np.zeros((drug_count, drug_count))
-    cosine = np.zeros((drug_count, drug_count))
-    pearson = np.zeros((drug_count, drug_count))
-    euclidean = np.zeros((drug_count, drug_count))
-    jaccard = np.zeros((drug_count, drug_count))
+    # cosine = np.zeros((drug_count, drug_count))
+    # pearson = np.zeros((drug_count, drug_count))
+    # euclidean = np.zeros((drug_count, drug_count))
+    # jaccard = np.zeros((drug_count, drug_count))
 
     for i in range(drug_count):
         for j in range(drug_count):
@@ -190,25 +208,27 @@ def drug_sim(dataType = 'davis'):
             inter = np.sum(np.bitwise_and(drug_ecfps[i], drug_ecfps[j]))
             sis[i][j] = 1 - ((np.sum(drug_ecfps[j]) - inter) / np.sum(drug_ecfps[j]))
             # cosine
-            cosine[i][j] = 1 - distance.cosine(drug_ecfps[i], drug_ecfps[j])
+            # cosine[i][j] = 1 - distance.cosine(drug_ecfps[i], drug_ecfps[j])
             # pearson
-            pearson[i][j] = 1 - distance.correlation(drug_ecfps[i], drug_ecfps[j])
+            # pearson[i][j] = 1 - distance.correlation(drug_ecfps[i], drug_ecfps[j])
             # euclidean
-            euclidean[i][j] = distance.euclidean(drug_ecfps[i], drug_ecfps[j])
+            # euclidean[i][j] = distance.euclidean(drug_ecfps[i], drug_ecfps[j])
             # jaccard
-            jaccard[i][j] = 1 - distance.jaccard(drug_ecfps[i], drug_ecfps[j])
+            # jaccard[i][j] = 1 - distance.jaccard(drug_ecfps[i], drug_ecfps[j])
 
     np.savetxt('./data/{}/drug_sis.csv'.format(dataType), sis, fmt='%s', delimiter=',')
-    np.savetxt('./data/{}/drug_cosine.csv'.format(dataType), cosine, fmt='%s', delimiter=',')
-    np.savetxt('./data/{}/drug_pearson.csv'.format(dataType), pearson, fmt='%s', delimiter=',')
-    euclidean_max, euclidean_min = euclidean.max(axis=0), euclidean.min(axis=0)
-    euclidean = 1 - ((euclidean - euclidean_min) / (euclidean_max - euclidean_min))
-    np.savetxt('./data/{}/drug_euclidean.csv'.format(dataType), euclidean, fmt='%s', delimiter=',')
-    np.savetxt('./data/{}/drug_jaccard.csv'.format(dataType), jaccard, fmt='%s', delimiter=',')
+    # np.savetxt('./data/{}/drug_cosine.csv'.format(dataType), cosine, fmt='%s', delimiter=',')
+    # np.savetxt('./data/{}/drug_pearson.csv'.format(dataType), pearson, fmt='%s', delimiter=',')
+    # euclidean_max, euclidean_min = euclidean.max(axis=0), euclidean.min(axis=0)
+    # euclidean = 1 - ((euclidean - euclidean_min) / (euclidean_max - euclidean_min))
+    # np.savetxt('./data/{}/drug_euclidean.csv'.format(dataType), euclidean, fmt='%s', delimiter=',')
+    # np.savetxt('./data/{}/drug_jaccard.csv'.format(dataType), jaccard, fmt='%s', delimiter=',')
 
 if __name__=='__main__':
-    dataType = 'kiba'
+    # drug_ecfps('metz')
+    # drug_sim('metz')
+    protein_embedding('metz')
     # protein_go_vector('kiba')
-    protein_seq('davis')
-    # protein_go_vector('davis')
-    # protein_sim('davis')
+    # protein_go('metz')
+    # protein_go_vector('metz')
+    # protein_sim('metz')

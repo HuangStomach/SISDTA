@@ -27,21 +27,21 @@ class Davis:
 
         d_sim_path = self.d_sim_path
         delimiter = ' '
-        if self.sim_type != 'default':
-            d_sim_path = './data/davis/drug_{}.csv'.format(self.sim_type)
-            delimiter = ','
+        # if self.sim_type != 'default':
+        #     d_sim_path = './data/davis/drug_{}.csv'.format(self.sim_type)
+        #     delimiter = ','
         self.d_sim = np.loadtxt(d_sim_path, delimiter=delimiter, dtype=float, comments=None)
 
         self.p_gos = pd.read_csv(self.p_gos_path, delimiter=',', header=0, index_col=0).to_numpy(float)
-        # if self.sim_type != 'default':
-        #     p_sim_path = './data/davis/protein_{}.csv'.format(self.sim_type)
-        #     self.p_sim = np.loadtxt(p_sim_path, delimiter=',', dtype=float, comments=None)
-        # else:
-        p_sim = np.loadtxt(self.p_sim_path, delimiter=' ', dtype=float, comments=None)
-        p_max, p_min = p_sim.max(axis=0), p_sim.min(axis=0)
-        self.p_sim = (p_sim - p_min) / (p_max - p_min)
+        if self.sim_type != 'default':
+            p_sim_path = './data/davis/protein_{}.csv'.format(self.sim_type)
+            self.p_sim = np.loadtxt(p_sim_path, delimiter=',', dtype=float, comments=None)
+        else:
+            p_sim = np.loadtxt(self.p_sim_path, delimiter=' ', dtype=float, comments=None)
+            p_max, p_min = p_sim.max(axis=0), p_sim.min(axis=0)
+            self.p_sim = (p_sim - p_min) / (p_max - p_min)
 
         self.p_embeddings = pd.read_csv('./data/davis/protein_embedding_avg.csv', delimiter=',', 
             header=None).to_numpy(float)
 
-        self.y = np.loadtxt('./data/davis/Y.txt', delimiter=',', dtype=float, comments=None)
+        self.label = np.loadtxt('./data/davis/Y.txt', delimiter=',', dtype=float, comments=None)

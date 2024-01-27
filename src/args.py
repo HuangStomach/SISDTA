@@ -25,6 +25,9 @@ class Args:
                 help='The step size at each iteration')
             self.parser.add_argument('-l1', '--lambda_1', default=1, type=float, metavar=None,
                 help='AutoEncoder loss function weights')
+            self.parser.add_argument('-w', '--weight_decay', default=0, type=float, metavar=None,
+                help='weight decay')
+
             # parser.add_argument('-l2', '--lambda_2', default=0.00001, type=float, metavar='float')
             # parser.add_argument('-u', '--unit', default=0.1, type=float, metavar='float', help='unit of target')
     

@@ -42,4 +42,4 @@ class Kiba:
         self.p_embeddings = pd.read_csv('./data/kiba/protein_embedding_avg.csv', 
             delimiter=',', header=None).to_numpy(float)
 
-        self.y = np.loadtxt('./data/kiba/Y.txt', delimiter=',', dtype=float, comments=None)
+        self.label = np.loadtxt('./data/kiba/Y.txt', delimiter=',', dtype=float, comments=None)
