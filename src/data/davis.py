@@ -44,4 +44,5 @@ class Davis:
         self.p_embeddings = pd.read_csv('./data/davis/protein_embedding_avg.csv', delimiter=',', 
             header=None).to_numpy(float)
 
-        self.label = np.loadtxt('./data/davis/Y.txt', delimiter=',', dtype=float, comments=None)
+        # self.label = np.loadtxt('./data/davis/Y.txt', delimiter=',', dtype=float, comments=None)
+        self.label = np.loadtxt('./data/davis/Y_filtered.txt', delimiter=',', dtype=float, comments=None)

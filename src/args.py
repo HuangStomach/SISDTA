@@ -15,7 +15,7 @@ class Args:
             help='Thresholds for protein relationship graphs')
 
         if action == 'train':
-            self.parser.add_argument('-s', '--setting', default=1, type=int, metavar=None, 
+            self.parser.add_argument('-s', '--setting', default=0, type=int, metavar=None, 
                 help='Experimental setting')
             self.parser.add_argument('-e', '--epochs', default=1000, type=int, metavar=None, 
                 help='Number of training iterations required')

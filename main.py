@@ -32,11 +32,10 @@ def train(args, fold):
     for epoch in range(1, args.epochs + 1):
         for d_index, p_index, d_vecs, p_embeddings, y in tqdm(trainLoader, leave=False):
             optimizer.zero_grad()
-            y_bar, encoded, decoded, feature = model(d_index, p_index, d_vecs, p_embeddings, train)
+            y_bar, decoded, feature = model(d_index, p_index, d_vecs, p_embeddings, train)
             
             train_mse = mseLoss(y, y_bar)
-            trainLoss = train_mse + \
-                args.lambda_1 * aeMseLoss(decoded, feature)
+            trainLoss = train_mse + args.lambda_1 * aeMseLoss(decoded, feature)
             trainLoss.backward()
 
             optimizer.step()
@@ -47,7 +46,7 @@ def train(args, fold):
             preds = torch.tensor([], device=args.device)
             labels = torch.tensor([], device=args.device)
             for d_index, p_index, d_vecs, p_embeddings, y in testLoader:
-                y_bar, _, _, _, = model(d_index, p_index, d_vecs, p_embeddings, test)
+                y_bar, _, _, = model(d_index, p_index, d_vecs, p_embeddings, test)
                 preds = torch.cat((preds, y_bar.flatten()), dim=0)
                 labels = torch.cat((labels, y.flatten()), dim=0)
 
@@ -57,7 +56,7 @@ def train(args, fold):
             ci = get_cindex(l, p)
             rm2 = get_rm2(l, p)
             sp = spearman(l, p)
-            result = 'Fold: {} Epoch: {} train loss: {:.6f} train mse: {:.6f} test mse: {:.6f} ci: {:.6f} rm2: {:.6f} spearman: {:.6f}'.format(fold, epoch, trainLoss.item(), train_mse.item(), test_mse, ci, rm2, sp)
+            result = 'Fold: {} Epoch: {} train loss: {:.6f} train mse: {:.6f} test mse: {:.6f} ci: {:.6f} rm2: {:.6f} spearman: {:.6f} rmse: {:.6f}'.format(fold, epoch, trainLoss.item(), train_mse.item(), test_mse, ci, rm2, sp, test_mse ** 0.5)
             print(result)
 
     torch.save(model.state_dict(), './output/{}/{}_model.pt'.format(args.dataset, args.sim_type))
@@ -67,7 +66,7 @@ if __name__=='__main__':
     argparse = Args(action='train')
     args = argparse.parse_args()
 
-    for fold in range(MultiDataset.fold_size(args.dataset, args.setting)):
+    for fold in range(MultiDataset.fold_size(args.setting)):
         with open('./output/{}/{}_folds.log'.format(args.dataset, args.sim_type), mode='a') as file:
             # 将文本写入文件
             result = train(args, fold)
