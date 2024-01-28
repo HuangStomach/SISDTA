@@ -1,4 +1,5 @@
 import numpy as np
+from scipy import stats
 
 def get_cindex(gt, pred):
     gt_mask = gt.reshape((1, -1)) > gt.reshape((-1, 1))
@@ -45,3 +46,17 @@ def r_squared_error(y_obs,y_pred):
     y_pred_sq = sum((y_pred - y_pred_mean) * (y_pred - y_pred_mean) )
 
     return mult / float(y_obs_sq * y_pred_sq)
+
+def spearman(y,f):
+    """
+    Task:    To compute Spearman's rank correlation coefficient
+
+    Input:   y      Vector with original labels (pKd [M])
+             f      Vector with predicted labels (pKd [M])
+
+    Output:  rs     Spearman's rank correlation coefficient
+    """
+
+    rs = stats.spearmanr(y, f)[0]
+
+    return rs

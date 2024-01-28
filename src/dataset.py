@@ -36,7 +36,7 @@ class MultiDataset(Dataset):
 
         self._check_exists()
         self.handler._load_data()
-        self.handler._split(setting, fold)
+        self._split(setting, fold)
 
         self.d_vecs = torch.tensor(self.handler.d_vecs, dtype=torch.float32, device=self.device)
         self.d_ecfps = torch.tensor(self.handler.d_ecfps, dtype=torch.float32, device=self.device)
@@ -56,10 +56,10 @@ class MultiDataset(Dataset):
             for k in range(len(self.handler.drugs)):
                 i = self.handler.drugs[k]
                 j = self.handler.proteins[k]
-                if self.new and np.isnan(label[i][j]):
+                if self.new and (np.isnan(label[i][j]) or label[i][j] == 0.0):
                     indexes.append([i, j])
                     continue
-                if np.isnan(label[i][j]): continue
+                if np.isnan(label[i][j]) or label[i][j] == 0.0: continue
                 indexes.append([i, j])
                 y.append(label[i][j])
 
@@ -67,7 +67,7 @@ class MultiDataset(Dataset):
         # self.d_ei, self.d_ew = self._graph(self.d_sim, min = self.handler.d_threshold)
         # self.p_ei, self.p_ew = self._graph(self.p_sim, min = self.handler.p_threshold)
         self.d_ew = self._matrix(self.d_sim, min = self.handler.d_threshold)
-        self.p_ew = self._matrix(self.p_sim, min = self.handler.p_threshold, miu=0.7)
+        self.p_ew = self._matrix(self.p_sim, min = self.handler.p_threshold)
 
         self.indexes = torch.tensor(indexes, dtype=torch.long, device=self.device)
         if not new: self.y = torch.tensor(y, dtype=torch.float32, device=self.device).view(-1, 1)
