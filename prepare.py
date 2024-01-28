@@ -3,6 +3,7 @@ import requests
 import json
 import pandas as pd
 import numpy as np
+import random
 import scipy.spatial.distance as distance
 from time import sleep
 from urllib import request
@@ -95,6 +96,43 @@ def protein_go(type):
             
     np.savetxt('./data/{}/protein_go.csv'.format(type), seqs, fmt='%s', delimiter=',')
 
+def protein_ami_go(type):
+    seqs = []
+    protein_dict = np.loadtxt('./data/{}/protein.csv'.format(type), dtype=str, delimiter=',')[:, 0]
+    protein_url = 'https://www.ebi.ac.uk/QuickGO/services/annotation/search?page={}&limit=100&geneProductId={}'
+    pre = ""
+
+    for protein in protein_dict:
+        if protein == pre:
+            seqs.append(seqs[-1])
+            print(protein, 'OK')
+            continue
+        try:
+            page = 1
+            go_vectos = set()
+            while True:
+                sleep(random.randint(1, 5))
+                req = request.Request(protein_url.format(page, protein), headers={
+                    'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.110 Safari/537.36'
+                })
+                data = request.urlopen(req).read()
+                text = json.loads(data)
+                
+                for item in text['results']:
+                    if protein not in item['id']: continue
+                    go_vectos.add(item['goId'][3:])
+                page += 1
+                if page > text['pageInfo']['total']: break
+
+            seqs.append([protein, ";".join(go_vectos)])
+            print(protein, 'OK')
+            pre = protein
+        except Exception as e:
+            print(protein, e)
+            seqs.append([protein, 'ERROR'])
+
+    np.savetxt('./data/{}/protein_ami_go.csv'.format(type), seqs, fmt='%s', delimiter=',')
+
 def protein_go_vector(type = 'davis'):
     protein_go = np.loadtxt('./data/{}/protein_go.csv'.format(type), dtype=str, delimiter=',')
     proteins = protein_go[:, 0]
@@ -119,7 +157,7 @@ def protein_sim(dataType = 'davis'):
     # cosine = np.zeros((protein_count, protein_count))
     # pearson = np.zeros((protein_count, protein_count))
     # euclidean = np.zeros((protein_count, protein_count))
-    # jaccard = np.zeros((protein_count, protein_count))
+    jaccard = np.zeros((protein_count, protein_count))
 
     for i in range(protein_count):
         for j in range(protein_count):
@@ -133,7 +171,7 @@ def protein_sim(dataType = 'davis'):
             # euclidean
             # euclidean[i][j] = distance.euclidean(protein_gos[i], protein_gos[j])
             # jaccard
-            # jaccard[i][j] = 1 - distance.jaccard(protein_gos[i], protein_gos[j])
+            jaccard[i][j] = 1 - distance.jaccard(protein_gos[i], protein_gos[j])
 
     np.savetxt('./data/{}/protein_sis.csv'.format(dataType), sis, fmt='%s', delimiter=',')
     # np.savetxt('./data/{}/protein_cosine.csv'.format(dataType), cosine, fmt='%s', delimiter=',')
@@ -141,7 +179,7 @@ def protein_sim(dataType = 'davis'):
     # euclidean_max, euclidean_min = euclidean.max(axis=0), euclidean.min(axis=0)
     # euclidean = 1 - ((euclidean - euclidean_min) / (euclidean_max - euclidean_min))
     # np.savetxt('./data/{}/protein_euclidean.csv'.format(dataType), euclidean, fmt='%s', delimiter=',')
-    # np.savetxt('./data/{}/protein_jaccard.csv'.format(dataType), jaccard, fmt='%s', delimiter=',')
+    np.savetxt('./data/{}/protein_jaccard.csv'.format(dataType), jaccard, fmt='%s', delimiter=',')
 
 def drug_smile():
     seqs = []
@@ -200,7 +238,7 @@ def drug_sim(dataType = 'davis'):
     # cosine = np.zeros((drug_count, drug_count))
     # pearson = np.zeros((drug_count, drug_count))
     # euclidean = np.zeros((drug_count, drug_count))
-    # jaccard = np.zeros((drug_count, drug_count))
+    jaccard = np.zeros((drug_count, drug_count))
 
     for i in range(drug_count):
         for j in range(drug_count):
@@ -213,8 +251,8 @@ def drug_sim(dataType = 'davis'):
             # pearson[i][j] = 1 - distance.correlation(drug_ecfps[i], drug_ecfps[j])
             # euclidean
             # euclidean[i][j] = distance.euclidean(drug_ecfps[i], drug_ecfps[j])
-            # jaccard
-            # jaccard[i][j] = 1 - distance.jaccard(drug_ecfps[i], drug_ecfps[j])
+            jaccard
+            jaccard[i][j] = 1 - distance.jaccard(drug_ecfps[i], drug_ecfps[j])
 
     np.savetxt('./data/{}/drug_sis.csv'.format(dataType), sis, fmt='%s', delimiter=',')
     # np.savetxt('./data/{}/drug_cosine.csv'.format(dataType), cosine, fmt='%s', delimiter=',')
@@ -222,13 +260,14 @@ def drug_sim(dataType = 'davis'):
     # euclidean_max, euclidean_min = euclidean.max(axis=0), euclidean.min(axis=0)
     # euclidean = 1 - ((euclidean - euclidean_min) / (euclidean_max - euclidean_min))
     # np.savetxt('./data/{}/drug_euclidean.csv'.format(dataType), euclidean, fmt='%s', delimiter=',')
-    # np.savetxt('./data/{}/drug_jaccard.csv'.format(dataType), jaccard, fmt='%s', delimiter=',')
+    np.savetxt('./data/{}/drug_jaccard.csv'.format(dataType), jaccard, fmt='%s', delimiter=',')
 
 if __name__=='__main__':
     # drug_ecfps('metz')
     # drug_sim('metz')
-    protein_embedding('metz')
+    # protein_embedding('davis')
     # protein_go_vector('kiba')
     # protein_go('metz')
-    # protein_go_vector('metz')
-    # protein_sim('metz')
+    # protein_ami_go('davis')
+    protein_go_vector('davis')
+    protein_sim('davis')

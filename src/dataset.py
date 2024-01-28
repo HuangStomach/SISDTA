@@ -79,7 +79,7 @@ class MultiDataset(Dataset):
 
         y_durgs, y_proteins = np.where(np.isnan(self.handler.label) == False)
         
-        if setting == 1:
+        if setting == 0:
             name = self.handler.train_setting1_path if self.train \
                 else self.handler.test_setting1_path
 
@@ -226,6 +226,6 @@ class MultiDataset(Dataset):
         #     with open(self.handler.setting3_path, "w") as f: json.dump(folds, f, default=int)
 
     @staticmethod
-    def fold_size(dataset, setting):
-        if setting == 1 and dataset != 'metz': return 1
+    def fold_size(setting):
+        if setting == 0: return 1
         else: return 5
