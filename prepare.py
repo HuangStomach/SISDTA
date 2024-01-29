@@ -82,10 +82,10 @@ def protein_go(type):
             data = request.urlopen(req).read()
             text = json.loads(data)
             
-            go_vectos = []
+            go_vectos = set()
             for item in text['uniProtKBCrossReferences']:
                 if item['database'] != 'GO': continue
-                go_vectos.append(item['id'])
+                go_vectos.add(item['id'][3:])
 
             seqs.append([protein, ";".join(go_vectos)])
             print(protein, 'OK')
@@ -95,43 +95,6 @@ def protein_go(type):
             seqs.append([protein, 'ERROR'])
             
     np.savetxt('./data/{}/protein_go.csv'.format(type), seqs, fmt='%s', delimiter=',')
-
-def protein_ami_go(type):
-    seqs = []
-    protein_dict = np.loadtxt('./data/{}/protein.csv'.format(type), dtype=str, delimiter=',')[:, 0]
-    protein_url = 'https://www.ebi.ac.uk/QuickGO/services/annotation/search?page={}&limit=100&geneProductId={}'
-    pre = ""
-
-    for protein in protein_dict:
-        if protein == pre:
-            seqs.append(seqs[-1])
-            print(protein, 'OK')
-            continue
-        try:
-            page = 1
-            go_vectos = set()
-            while True:
-                sleep(random.randint(1, 5))
-                req = request.Request(protein_url.format(page, protein), headers={
-                    'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.110 Safari/537.36'
-                })
-                data = request.urlopen(req).read()
-                text = json.loads(data)
-                
-                for item in text['results']:
-                    if protein not in item['id']: continue
-                    go_vectos.add(item['goId'][3:])
-                page += 1
-                if page > text['pageInfo']['total']: break
-
-            seqs.append([protein, ";".join(go_vectos)])
-            print(protein, 'OK')
-            pre = protein
-        except Exception as e:
-            print(protein, e)
-            seqs.append([protein, 'ERROR'])
-
-    np.savetxt('./data/{}/protein_ami_go.csv'.format(type), seqs, fmt='%s', delimiter=',')
 
 def protein_go_vector(type = 'davis'):
     protein_go = np.loadtxt('./data/{}/protein_go.csv'.format(type), dtype=str, delimiter=',')
@@ -268,6 +231,5 @@ if __name__=='__main__':
     # protein_embedding('davis')
     # protein_go_vector('kiba')
     # protein_go('metz')
-    # protein_ami_go('davis')
     protein_go_vector('davis')
     protein_sim('davis')

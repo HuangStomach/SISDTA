@@ -1,6 +1,6 @@
 import os
 import json
-import pandas as pd
+import random
 import numpy as np
 
 import torch
@@ -12,11 +12,13 @@ from sklearn.model_selection import KFold
 
 from src.data.kiba import Kiba
 from src.data.davis import Davis
+from src.data.fdavis import FDavis
 from src.data.metz import Metz
 
 handlers = {
     'kiba': Kiba,
     'davis': Davis,
+    'fdavis': FDavis,
     'metz': Metz,
 }
 
@@ -136,8 +138,10 @@ class MultiDataset(Dataset):
         for i in range(size):
             neighbors = (-matrix[i]).argsort()
             k = 0
+            r = random.randint(1, neighbor_num)
             for neighbor in neighbors:
                 if k >= neighbor_num and matrix[i][neighbor] < min: break
+                if k == r: continue # 随机丢弃一些边
                 edge_index.append([neighbor, i])
                 edge_weight.append(matrix[i][neighbor])
                 if matrix[i][neighbor] < max: 
