@@ -21,6 +21,7 @@ handlers = {
     'fdavis': FDavis,
     'metz': Metz,
 }
+RANDOM_STATE = random.randint(1, 100000000)
 
 class MultiDataset(Dataset):
     def __init__(self, 
@@ -68,15 +69,15 @@ class MultiDataset(Dataset):
         print('generating similarity graph...')
         # self.d_ei, self.d_ew = self._graph(self.d_sim, min = self.handler.d_threshold)
         # self.p_ei, self.p_ew = self._graph(self.p_sim, min = self.handler.p_threshold)
-        self.d_ew = self._matrix(self.d_sim, min = self.handler.d_threshold)
-        self.p_ew = self._matrix(self.p_sim, min = self.handler.p_threshold)
+        self.d_ew = self._matrix(self.d_sim, min = self.handler.d_threshold, neighbor_num=10)
+        self.p_ew = self._matrix(self.p_sim, min = self.handler.p_threshold, neighbor_num=10)
 
         self.indexes = torch.tensor(indexes, dtype=torch.long, device=self.device)
         if not new: self.y = torch.tensor(y, dtype=torch.float32, device=self.device).view(-1, 1)
 
     def _split(self, setting, fold):
         if hasattr(self.handler, '_split'):
-            self.handler._split(setting, fold)
+            self.handler._split(setting, fold, RANDOM_STATE)
             return
 
         y_durgs, y_proteins = np.where(np.isnan(self.handler.label) == False)
@@ -138,10 +139,8 @@ class MultiDataset(Dataset):
         for i in range(size):
             neighbors = (-matrix[i]).argsort()
             k = 0
-            r = random.randint(1, neighbor_num)
             for neighbor in neighbors:
                 if k >= neighbor_num and matrix[i][neighbor] < min: break
-                if k == r: continue # 随机丢弃一些边
                 edge_index.append([neighbor, i])
                 edge_weight.append(matrix[i][neighbor])
                 if matrix[i][neighbor] < max: 

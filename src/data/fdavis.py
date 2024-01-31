@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+from sklearn.model_selection import KFold
 
 class FDavis: # Filtered Davis
     def __init__(self, train=True, sim_type='sis', d_threshold=0.6, p_threshold=0.6):
@@ -9,10 +10,7 @@ class FDavis: # Filtered Davis
         self.d_threshold = d_threshold
         self.p_threshold = p_threshold
 
-        self.train_setting1_path = './data/davis/folds/train_fold_setting1.txt'
-        self.test_setting1_path = './data/davis/folds/test_fold_setting1.txt'
-        self.setting2_path = './data/davis/folds/fold_setting2.json'
-        self.setting3_path = './data/davis/folds/fold_setting3.json'
+        self.setting1_path = './data/fdavis/folds/setting_1.csv' # drug,target,value,fold
 
         self.ligands_path = './data/davis/ligands_can.json'
         self.d_ecfps_path = './data/davis/drug_ecfps.csv'
@@ -44,4 +42,15 @@ class FDavis: # Filtered Davis
         self.p_embeddings = pd.read_csv('./data/davis/protein_embedding_avg.csv', delimiter=',', 
             header=None).to_numpy(float)
 
-        self.label = np.loadtxt('./data/davis/Y_filtered.txt', delimiter=',', dtype=float, comments=None)
+    def _split(self, setting, fold, random_state):
+        self.indexes = []
+        self.y = []
+        if setting == 1:
+            settings = np.loadtxt(self.setting1_path, delimiter=',', dtype=float, comments=None)
+            kf = KFold(n_splits=5, random_state=random_state, shuffle=True).split(settings)
+            train, test = list(kf)[fold]
+            indices = train if self.train else test
+
+            for [drug, target, value] in settings[indices]:
+                self.indexes.append([drug, target])
+                self.y.append(value)

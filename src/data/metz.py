@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+from sklearn.model_selection import KFold
 
 class Metz:
     def __init__(self, train=True, sim_type='sis', d_threshold=0.6, p_threshold=0.6):
@@ -36,14 +37,15 @@ class Metz:
 
         # self.label = np.loadtxt('./data/metz/Y.txt', delimiter=',', dtype=float, comments=None)
 
-    def _split(self, setting, fold):
+    def _split(self, setting, fold, random_state):
         self.indexes = []
         self.y = []
         if setting == 1:
             settings = np.loadtxt(self.setting1_path, delimiter=',', dtype=float, comments=None)
-            if self.train: settings = settings[np.where(settings[:, 3] != (fold + 1))]
-            else: settings = settings[np.where(settings[:, 3] == (fold + 1))]
+            kf = KFold(n_splits=5, random_state=random_state, shuffle=True).split(settings)
+            train, test = list(kf)[fold]
+            indices = train if self.train else test
 
-            for [drug, target, value, _] in settings:
+            for [drug, target, value, _] in settings[indices]:
                 self.indexes.append([drug - 1, target - 1])
                 self.y.append(value)
