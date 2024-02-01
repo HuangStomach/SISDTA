@@ -14,12 +14,14 @@ from src.data.kiba import Kiba
 from src.data.davis import Davis
 from src.data.fdavis import FDavis
 from src.data.metz import Metz
+from src.data.bmetz import bMetz
 
 handlers = {
     'kiba': Kiba,
     'davis': Davis,
     'fdavis': FDavis,
     'metz': Metz,
+    'bmetz': bMetz,
 }
 RANDOM_STATE = random.randint(1, 100000000)
 
@@ -46,7 +48,7 @@ class MultiDataset(Dataset):
         self.d_sim = torch.tensor(self.handler.d_sim, dtype=torch.float32, device=self.device)
 
         self.p_gos = torch.tensor(self.handler.p_gos, dtype=torch.float32, device=self.device)
-        self.p_embeddings = torch.tensor(self.handler.p_embeddings, dtype=torch.float32, device=self.device)
+        self.p_embeddings = torch.tensor(self.handler.p_embeddings, dtype=torch.long, device=self.device)
         self.p_sim = torch.tensor(self.handler.p_sim, dtype=torch.float32, device=self.device)
 
         self.dsize = self.d_sim.size()[0]
@@ -67,10 +69,12 @@ class MultiDataset(Dataset):
                 y.append(label[i][j])
 
         print('generating similarity graph...')
-        # self.d_ei, self.d_ew = self._graph(self.d_sim, min = self.handler.d_threshold)
-        # self.p_ei, self.p_ew = self._graph(self.p_sim, min = self.handler.p_threshold)
-        self.d_ew = self._matrix(self.d_sim, min = self.handler.d_threshold, neighbor_num=10)
-        self.p_ew = self._matrix(self.p_sim, min = self.handler.p_threshold, neighbor_num=10)
+        if self.device == 'mps':
+            self.d_ew = self._matrix(self.d_sim, min = self.handler.d_threshold, miu=0.7)
+            self.p_ew = self._matrix(self.p_sim, min = self.handler.p_threshold, miu=0.7)
+        else:
+            self.d_ei, self.d_ew = self._graph(self.d_sim, min = self.handler.d_threshold)
+            self.p_ei, self.p_ew = self._graph(self.p_sim, min = self.handler.p_threshold)
 
         self.indexes = torch.tensor(indexes, dtype=torch.long, device=self.device)
         if not new: self.y = torch.tensor(y, dtype=torch.float32, device=self.device).view(-1, 1)
@@ -172,7 +176,7 @@ class MultiDataset(Dataset):
             dindex, pindex,
             self.d_vecs[dindex], self.p_embeddings[pindex], 
         ]
-
+        
         if not self.new: res.append(self.y[index])
         return res
 

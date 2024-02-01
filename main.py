@@ -1,7 +1,8 @@
+import random
+import sys
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
-from sklearn.metrics import mean_squared_error
 from tqdm import tqdm
 from datetime import datetime
 
@@ -45,14 +46,15 @@ def train(args, fold):
         with torch.no_grad():
             preds = torch.tensor([], device=args.device)
             labels = torch.tensor([], device=args.device)
+
             for d_index, p_index, d_vecs, p_embeddings, y in testLoader:
                 y_bar, _, _, = model(d_index, p_index, d_vecs, p_embeddings, test)
                 preds = torch.cat((preds, y_bar.flatten()), dim=0)
                 labels = torch.cat((labels, y.flatten()), dim=0)
 
+            test_mse = nn.functional.mse_loss(preds, labels).item()
             p = preds.cpu().numpy()
             l = labels.cpu().numpy()
-            test_mse = mean_squared_error(p, l)
             ci = get_cindex(l, p)
             rm2 = get_rm2(l, p)
             sp = spearman(l, p)

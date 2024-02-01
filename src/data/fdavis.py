@@ -23,12 +23,13 @@ class FDavis: # Filtered Davis
         self.d_vecs = np.loadtxt(self.d_vecs_path, delimiter=',', dtype=float, comments=None)
         self.d_ecfps = np.loadtxt(self.d_ecfps_path, delimiter=',', dtype=int, comments=None)
 
-        d_sim_path = self.d_sim_path
-        delimiter = ' '
-        if self.sim_type != 'default':
-            d_sim_path = './data/davis/drug_{}.csv'.format(self.sim_type)
-            delimiter = ','
-        self.d_sim = np.loadtxt(d_sim_path, delimiter=delimiter, dtype=float, comments=None)
+        # d_sim_path = self.d_sim_path
+        # delimiter = ' '
+        # if self.sim_type != 'default':
+        #     d_sim_path = './data/davis/drug_{}.csv'.format(self.sim_type)
+        #     delimiter = ','
+        # self.d_sim = np.loadtxt(d_sim_path, delimiter=delimiter, dtype=float, comments=None)
+        self.d_sim = np.loadtxt('./data/davis/drug_sis.csv', delimiter=',', dtype=float, comments=None)
 
         self.p_gos = pd.read_csv(self.p_gos_path, delimiter=',', header=0, index_col=0).to_numpy(float)
         if self.sim_type != 'default':

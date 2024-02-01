@@ -35,6 +35,27 @@ def protein_seq(type = 'davis'):
 
     np.savetxt('./data/{}/protein.csv'.format(type), seqs, fmt='%s', delimiter=',')
 
+def protein_embedding_a(dataType = 'davis'):
+    seqs = np.loadtxt('./data/{}/protein.csv'.format(dataType), 
+        dtype=str, delimiter=',')[:, 1 if dataType == 'kiba' else 2]
+    
+    seq_voc = "ABCDEFGHIKLMNOPQRSTUVWXYZ"
+    seq_dict = {v: (i+1) for i, v in enumerate(seq_voc)}
+
+    def seq_cat(prot):
+        x = np.zeros(1000)
+        for i, ch in enumerate(prot[:1000]):
+            x[i] = seq_dict[ch]
+        return x
+    
+    data = []
+    for seq in seqs:
+        data.append(seq_cat(seq))
+    data = np.asarray(data)
+
+    np.savetxt('./data/{}/protein_embedding.csv'.format(dataType), data, fmt='%s', delimiter=',')
+
+
 def protein_embedding(dataType = 'davis', pooling = 'avg'):
     seqs = np.loadtxt('./data/{}/protein.csv'.format(dataType), 
         dtype=str, delimiter=',')[:, 1 if dataType == 'kiba' else 2]
@@ -74,7 +95,6 @@ def protein_go(type):
     protein_url = 'https://rest.uniprot.org/beta/uniprotkb/{}.json'
 
     for protein in protein_dict:
-        sleep(1)
         try:
             req = request.Request(protein_url.format(protein), headers={
                 'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.110 Safari/537.36'
@@ -93,7 +113,7 @@ def protein_go(type):
         except Exception as e:
             print(protein, e)
             seqs.append([protein, 'ERROR'])
-            
+
     np.savetxt('./data/{}/protein_go.csv'.format(type), seqs, fmt='%s', delimiter=',')
 
 def protein_go_vector(type = 'davis'):
@@ -174,7 +194,7 @@ def drug_ecfps(dataType = 'davis', filename = 'ligands_iso.json'):
     #         print(drug)
 
     # if fp != None: fp.close()
-    drugs = np.loadtxt('./data/metz/drug.csv', dtype=str, delimiter=',', comments=None)
+    drugs = np.loadtxt('./data/{}/drug.csv'.format(dataType), dtype=str, delimiter=',', comments=None)
     
     for drug in drugs:
         try:
@@ -191,7 +211,7 @@ def drug_ecfps(dataType = 'davis', filename = 'ligands_iso.json'):
     featurizer = dc.feat.Mol2VecFingerprint()
     features = featurizer.featurize(smiles)
 
-    np.savetxt('./data/metz/drug_vec.csv', features, fmt='%s', delimiter=',')
+    np.savetxt('./data/{}/drug_vec.csv'.format(dataType), features, fmt='%s', delimiter=',')
 
 def drug_sim(dataType = 'davis'):
     drug_ecfps = np.loadtxt('./data/{}/drug_ecfps.csv'.format(dataType), delimiter=',', dtype=int, comments=None)
@@ -228,8 +248,7 @@ def drug_sim(dataType = 'davis'):
 if __name__=='__main__':
     # drug_ecfps('metz')
     # drug_sim('metz')
-    # protein_embedding('davis')
-    # protein_go_vector('kiba')
+    protein_embedding_a('metz')
     # protein_go('metz')
-    protein_go_vector('davis')
-    protein_sim('davis')
+    # protein_go_vector('metz')
+    # protein_sim('metz')
