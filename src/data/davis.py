@@ -32,7 +32,7 @@ class Davis:
             delimiter = ','
         self.d_sim = np.loadtxt(d_sim_path, delimiter=delimiter, dtype=float, comments=None)
 
-        self.p_gos = pd.read_csv(self.p_gos_path, delimiter=',', header=0, index_col=0).to_numpy(float)
+        self.p_gos = pd.read_csv(self.p_gos_path, delimiter=',', header=0, index_col=0).to_numpy(int)
         if self.sim_type != 'default':
             p_sim_path = './data/davis/protein_{}.csv'.format(self.sim_type)
             self.p_sim = np.loadtxt(p_sim_path, delimiter=',', dtype=float, comments=None)

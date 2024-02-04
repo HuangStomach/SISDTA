@@ -8,7 +8,7 @@ import scipy.spatial.distance as distance
 from time import sleep
 from urllib import request
 import re
-from transformers import BertModel, BertTokenizer
+from transformers import T5EncoderModel, T5Tokenizer
 import deepchem as dc
 from rdkit import Chem
 from rdkit.Chem import AllChem
@@ -55,12 +55,11 @@ def protein_embedding_a(dataType = 'davis'):
 
     np.savetxt('./data/{}/protein_embedding.csv'.format(dataType), data, fmt='%s', delimiter=',')
 
-
 def protein_embedding(dataType = 'davis', pooling = 'avg'):
     seqs = np.loadtxt('./data/{}/protein.csv'.format(dataType), 
         dtype=str, delimiter=',')[:, 1 if dataType == 'kiba' else 2]
-    tokenizer = BertTokenizer.from_pretrained("Rostlab/prot_bert", do_lower_case=False)
-    model = BertModel.from_pretrained("Rostlab/prot_bert")
+    tokenizer = T5Tokenizer.from_pretrained('Rostlab/prot_t5_xl_half_uniref50-enc', do_lower_case=False)
+    model = T5EncoderModel.from_pretrained("Rostlab/prot_t5_xl_half_uniref50-enc")
 
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
     model = model.to(device)
@@ -69,24 +68,18 @@ def protein_embedding(dataType = 'davis', pooling = 'avg'):
     file = './data/{}/protein_embedding_{}.csv'.format(dataType, pooling)
     with open(file, 'a+') as f: 
         f.flush
-        for seq in seqs:
-            seqs = [re.sub(r"[UZOB]", "X", " ".join(list(seq)))]
-            ids = tokenizer.batch_encode_plus(seq, add_special_tokens=True, padding="longest")
+        for i, seq in enumerate(seqs):
+            protein = [re.sub(r"[UZOB]", "X", " ".join(list(seq)))]
+            ids = tokenizer(protein, add_special_tokens=True, padding="longest")
             input_ids = torch.tensor(ids['input_ids']).to(device)
             attention_mask = torch.tensor(ids['attention_mask']).to(device)
 
-            with torch.no_grad(): embedding = model(input_ids, attention_mask=attention_mask)[0]
-            embedding = embedding.numpy()
-
-            features = [] 
-            for seq_num in range(len(embedding)):
-                seq_len = (attention_mask[seq_num] == 1).sum()
-                seq_emd = embedding[seq_num][1 : seq_len-1]
-                features.append(seq_emd)
-            
-            features = np.array(features)
-            features = np.average(features, 0) if pooling == 'avg' else np.max(features, 0)
-            line = ','.join(map(str, features[0]))
+            with torch.no_grad(): 
+                embedding = model(input_ids, attention_mask=attention_mask)
+            print(len(seq), embedding.last_hidden_state[0].shape)
+            feature = embedding.last_hidden_state[0, :len(seq)].mean(dim=0).tolist()
+                
+            line = ','.join(map(str, feature))
             f.write(line + '\n')
 
 def protein_go(type):
@@ -117,19 +110,26 @@ def protein_go(type):
     np.savetxt('./data/{}/protein_go.csv'.format(type), seqs, fmt='%s', delimiter=',')
 
 def protein_go_vector(type = 'davis'):
+    length = 1024
     protein_go = np.loadtxt('./data/{}/protein_go.csv'.format(type), dtype=str, delimiter=',')
     proteins = protein_go[:, 0]
     go_set = set()
     for _, go_vectors in protein_go:
         for v in go_vectors.split(";"):
-            go_set.add(v)
-    
-    df = pd.DataFrame(None, index=proteins, columns=list(go_set)).fillna(0)
+            go_set.add(int(v))
+
+    data = np.zeros((len(proteins), 1024))
     for i, protein in enumerate(proteins):
         for go in protein_go[i][1].split(";"):
-            df.loc[protein, go] = 1
+            pass
+            
 
-    df.to_csv('./data/{}/protein_go_vector.csv'.format(type))
+    # df = pd.DataFrame(None, index=proteins, columns=list(go_set)).fillna(0)
+    # for i, protein in enumerate(proteins):
+    #     for go in protein_go[i][1].split(";"):
+    #         df.loc[protein, go] = 1
+
+    # df.to_csv('./data/{}/protein_go_vector.csv'.format(type))
 
 def protein_sim(dataType = 'davis'):
     protein_gos =  pd.read_csv('./data/{}/protein_go_vector.csv'.format(dataType), 
@@ -248,7 +248,7 @@ def drug_sim(dataType = 'davis'):
 if __name__=='__main__':
     # drug_ecfps('metz')
     # drug_sim('metz')
-    protein_embedding_a('metz')
+    protein_embedding('davis')
     # protein_go('metz')
     # protein_go_vector('metz')
     # protein_sim('metz')

@@ -33,16 +33,16 @@ class Metz:
             p_max, p_min = self.p_sim.max(axis=0), self.p_sim.min(axis=0)
             self.p_sim = (self.p_sim - p_min) / (p_max - p_min)
 
-        # self.p_embeddings = pd.read_csv('./data/metz/protein_embedding_avg.csv', delimiter=',', 
-        #    header=None).to_numpy(float)
-        self.p_embeddings = pd.read_csv('./data/metz/protein_embedding.csv', delimiter=',', 
-            header=None).to_numpy(int)
+        self.p_embeddings = pd.read_csv('./data/metz/protein_embedding_avg.csv', delimiter=',', 
+            header=None).to_numpy(float)
+        # self.p_embeddings = pd.read_csv('./data/metz/protein_embedding.csv', delimiter=',', 
+        #    header=None).to_numpy(int)
 
         # self.label = np.loadtxt('./data/metz/Y.txt', delimiter=',', dtype=float, comments=None)
 
     def _split(self, setting, fold, random_state):
-        self.indexes = []
-        self.y = []
+        indexes = []
+        y = []
         if setting == 1:
             settings = np.loadtxt(self.setting1_path, delimiter=',', dtype=float, comments=None)
             kf = KFold(n_splits=5, random_state=random_state, shuffle=True).split(settings)
@@ -50,5 +50,7 @@ class Metz:
             indices = train if self.train else test
 
             for [drug, target, value] in settings[indices]:
-                self.indexes.append([drug, target])
-                self.y.append(value)
+                indexes.append([drug, target])
+                y.append(value)
+
+        return (indexes, y)

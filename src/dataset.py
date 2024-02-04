@@ -5,10 +5,8 @@ import numpy as np
 
 import torch
 from torch.utils.data import Dataset
-from sklearn.model_selection import KFold
-# import deepchem as dc
-# from rdkit import Chem
-# from rdkit.Chem import AllChem
+import torch.nn.functional as F
+from torch_geometric.data import HeteroData
 
 from src.data.kiba import Kiba
 from src.data.davis import Davis
@@ -41,26 +39,70 @@ class MultiDataset(Dataset):
 
         self._check_exists()
         self.handler._load_data()
-        self._split(setting, fold)
 
         self.d_vecs = torch.tensor(self.handler.d_vecs, dtype=torch.float32, device=self.device)
         self.d_ecfps = torch.tensor(self.handler.d_ecfps, dtype=torch.float32, device=self.device)
         self.d_sim = torch.tensor(self.handler.d_sim, dtype=torch.float32, device=self.device)
 
+        self.p_embeddings = torch.tensor(self.handler.p_embeddings, dtype=torch.float32, device=self.device)
         self.p_gos = torch.tensor(self.handler.p_gos, dtype=torch.float32, device=self.device)
-        self.p_embeddings = torch.tensor(self.handler.p_embeddings, dtype=torch.long, device=self.device)
         self.p_sim = torch.tensor(self.handler.p_sim, dtype=torch.float32, device=self.device)
 
         self.dsize = self.d_sim.size()[0]
         self.psize = self.p_sim.size()[0]
 
-        indexes = self.handler.indexes if hasattr(self.handler, 'indexes') else []
-        y = self.handler.y if hasattr(self.handler, 'y') else []
-        if len(indexes) == 0:
+        indexes, y = self._split(setting, fold, self.train)
+
+        print('generating similarity graph...')
+        if self.device == 'mps':
+            self.d_ew = self._matrix(self.d_sim, min = self.handler.d_threshold)
+            self.p_ew = self._matrix(self.p_sim, min = self.handler.p_threshold)
+        else:
+            self.d_ei, self.d_ew = self._graph(self.d_sim, min = self.handler.d_threshold)
+            self.p_ei, self.p_ew = self._graph(self.p_sim, min = self.handler.p_threshold)
+
+        heterodata = HeteroData()
+        heterodata['protein'].x = self.p_embeddings
+        heterodata['drug'].x = self.d_ecfps
+        hedge_index = []
+        hedge_weight = []
+
+        hindexes, hy = indexes, y if self.train else self._split(setting, fold, True)
+        for (i, j), l in zip(hindexes, hy):
+            hedge_index.append([i, j])
+            hedge_weight.append(l)
+        heterodata['drug', 'aff', 'protein'].edge_index = torch.tensor(hedge_index, dtype=torch.long, device=self.device).t().contiguous()
+        # heterodata['drug', 'aff', 'protein'].edge_weight = F.normalize(torch.tensor(hedge_weight, dtype=torch.float32, device=self.device), dim=-1)
+        self.heterodata = heterodata
+        
+        self.indexes = torch.tensor(indexes, dtype=torch.long, device=self.device)
+        if not new: self.y = torch.tensor(y, dtype=torch.float32, device=self.device).view(-1, 1)
+
+    def _split(self, setting, fold, isTrain=True):
+        if hasattr(self.handler, '_split'):
+            return self.handler._split(setting, fold, isTrain, RANDOM_STATE)
+
+        y_durgs, y_proteins = np.where(np.isnan(self.handler.label) == False)
+        
+        if setting == 0:
+            name = self.handler.train_setting1_path if isTrain \
+                else self.handler.test_setting1_path
+
+            with open(name) as f:
+                indices = []
+                if isTrain: 
+                    for item in json.load(f): indices.extend(item)
+                else: indices = json.load(f)
+                indices = np.array(indices).flatten()
+
+            indexes = []
+            y = []
+            drugs = y_durgs[indices]
+            proteins = y_proteins[indices]
             label = self.handler.label
-            for k in range(len(self.handler.drugs)):
-                i = self.handler.drugs[k]
-                j = self.handler.proteins[k]
+            for k in range(len(indices)):
+                i = drugs[k]
+                j = proteins[k]
                 if self.new and (np.isnan(label[i][j]) or label[i][j] == 0.0):
                     indexes.append([i, j])
                     continue
@@ -68,36 +110,7 @@ class MultiDataset(Dataset):
                 indexes.append([i, j])
                 y.append(label[i][j])
 
-        print('generating similarity graph...')
-        if self.device == 'mps':
-            self.d_ew = self._matrix(self.d_sim, min = self.handler.d_threshold, miu=0.7)
-            self.p_ew = self._matrix(self.p_sim, min = self.handler.p_threshold, miu=0.7)
-        else:
-            self.d_ei, self.d_ew = self._graph(self.d_sim, min = self.handler.d_threshold)
-            self.p_ei, self.p_ew = self._graph(self.p_sim, min = self.handler.p_threshold)
-
-        self.indexes = torch.tensor(indexes, dtype=torch.long, device=self.device)
-        if not new: self.y = torch.tensor(y, dtype=torch.float32, device=self.device).view(-1, 1)
-
-    def _split(self, setting, fold):
-        if hasattr(self.handler, '_split'):
-            self.handler._split(setting, fold, RANDOM_STATE)
-            return
-
-        y_durgs, y_proteins = np.where(np.isnan(self.handler.label) == False)
-        
-        if setting == 0:
-            name = self.handler.train_setting1_path if self.train \
-                else self.handler.test_setting1_path
-
-            with open(name) as f:
-                indices = []
-                if self.train: 
-                    for item in json.load(f): indices.extend(item)
-                else: indices = json.load(f)
-                indices = np.array(indices).flatten()
-
-            self.handler.drugs, self.handler.proteins = y_durgs[indices], y_proteins[indices]
+            return (indexes, y)
         elif setting == 2: # some drugs unseen
             dsize = self.handler.d_sim.shape[0]
             folds = []
@@ -160,11 +173,13 @@ class MultiDataset(Dataset):
         for i in range(size):
             neighbors = (-matrix[i]).argsort()
             k = 0
+            r = random.randint(1, neighbor_num)
             for neighbor in neighbors:
                 if k >= neighbor_num and matrix[i][neighbor] < min: break
                 if matrix[i][neighbor] < max: 
                     _m[i][neighbor] = (miu ** k) * matrix[i][neighbor]
                     k += 1
+
             _m[i][i] = 1.0
 
         return torch.tensor(_m, dtype=torch.float32, device=self.device)
