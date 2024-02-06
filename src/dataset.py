@@ -45,8 +45,11 @@ class MultiDataset(Dataset):
         self.d_sim = torch.tensor(self.handler.d_sim, dtype=torch.float32, device=self.device)
 
         self.p_embeddings = torch.tensor(self.handler.p_embeddings, dtype=torch.float32, device=self.device)
-        self.p_gos = torch.tensor(self.handler.p_gos, dtype=torch.float32, device=self.device)
+        # go_sum = self.handler.p_gos.sum(axis=0)
+        # go_high = np.delete(self.handler.p_gos, np.where(go_sum < 5)[0].tolist(), axis=1)
+        self.p_gos = torch.tensor( self.handler.p_gos, dtype=torch.float32, device=self.device)
         self.p_sim = torch.tensor(self.handler.p_sim, dtype=torch.float32, device=self.device)
+        self.p_sim_sw = torch.tensor(self.handler.p_sim_sw, dtype=torch.float32, device=self.device)
 
         self.dsize = self.d_sim.size()[0]
         self.psize = self.p_sim.size()[0]
@@ -57,9 +60,11 @@ class MultiDataset(Dataset):
         if self.device == 'mps':
             self.d_ew = self._matrix(self.d_sim, min = self.handler.d_threshold)
             self.p_ew = self._matrix(self.p_sim, min = self.handler.p_threshold)
+            self.p_ew_sw = self._matrix(self.p_sim_sw, min = self.handler.p_threshold)
         else:
             self.d_ei, self.d_ew = self._graph(self.d_sim, min = self.handler.d_threshold)
             self.p_ei, self.p_ew = self._graph(self.p_sim, min = self.handler.p_threshold)
+            self.p_ei_sw, self.p_ew_sw = self._graph(self.p_sim_sw, min = self.handler.p_threshold)
 
         heterodata = HeteroData()
         heterodata['protein'].x = self.p_embeddings

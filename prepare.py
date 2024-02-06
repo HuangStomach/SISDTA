@@ -248,7 +248,7 @@ def drug_sim(dataType = 'davis'):
 if __name__=='__main__':
     # drug_ecfps('metz')
     # drug_sim('metz')
-    protein_embedding('davis')
+    # protein_embedding('davis')
     # protein_go('metz')
     # protein_go_vector('metz')
-    # protein_sim('metz')
+    protein_sim('davis')
