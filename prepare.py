@@ -292,6 +292,7 @@ if __name__=='__main__':
     # drug_ecfps('metz')
     # drug_sim('metz')
     # protein_go_slim('davis', 'generic')
+    # protein_embedding('davis')
     # protein_go('metz')
     # protein_go_vector('metz')
     protein_sim('davis')
