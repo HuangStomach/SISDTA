@@ -23,31 +23,26 @@ class Metz:
     def _load_data(self):
         self.d_vecs = np.loadtxt(self.d_vecs_path, delimiter=',', dtype=float, comments=None)
         self.d_ecfps = np.loadtxt(self.d_ecfps_path, delimiter=',', dtype=int, comments=None)
-        self.d_sim = np.loadtxt(self.d_sim_path.format('sis'), delimiter=',', dtype=float, comments=None)
+        self.d_sim = np.loadtxt(self.d_sim_path.format(self.sim_type), delimiter=',', dtype=float, comments=None)
 
         self.p_gos = pd.read_csv(self.p_gos_path, delimiter=',', header=0, index_col=0).to_numpy(float)
-        p_sim_path = './data/metz/protein_{}.csv'.format(self.sim_type)
-        self.p_sim = np.loadtxt(p_sim_path, delimiter=',', dtype=float, comments=None)
-        
-        if self.sim_type == 'default':
-            p_max, p_min = self.p_sim.max(axis=0), self.p_sim.min(axis=0)
-            self.p_sim = (self.p_sim - p_min) / (p_max - p_min)
+        self.p_sim = np.loadtxt('./data/metz/protein_{}.csv'.format(self.sim_type), delimiter=',', dtype=float, comments=None)
+
+        p_sim = np.loadtxt('./data/metz/protein_sw.csv', delimiter=',', dtype=float, comments=None)
+        p_max, p_min = p_sim.max(axis=0), p_sim.min(axis=0)
+        self.p_sim_sw = (p_sim - p_min) / (p_max - p_min)
 
         self.p_embeddings = pd.read_csv('./data/metz/protein_embedding_avg.csv', delimiter=',', 
             header=None).to_numpy(float)
-        # self.p_embeddings = pd.read_csv('./data/metz/protein_embedding.csv', delimiter=',', 
-        #    header=None).to_numpy(int)
 
-        # self.label = np.loadtxt('./data/metz/Y.txt', delimiter=',', dtype=float, comments=None)
-
-    def _split(self, setting, fold, random_state):
+    def _split(self, setting, fold, isTrain, random_state):
         indexes = []
         y = []
         if setting == 1:
             settings = np.loadtxt(self.setting1_path, delimiter=',', dtype=float, comments=None)
             kf = KFold(n_splits=5, random_state=random_state, shuffle=True).split(settings)
             train, test = list(kf)[fold]
-            indices = train if self.train else test
+            indices = train if isTrain else test
 
             for [drug, target, value] in settings[indices]:
                 indexes.append([drug, target])

@@ -26,7 +26,7 @@ def train(args, fold):
 
     mseLoss = nn.MSELoss()
     aeMseLoss = nn.MSELoss()
-    model = GNN().to(args.device)
+    model = GNN(args.device).to(args.device)
     optimizer = torch.optim.Adam(model.parameters(), lr=args.learning_rate, weight_decay=args.weight_decay)
 
     print('training fold {}...'.format(fold))

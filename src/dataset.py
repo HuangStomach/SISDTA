@@ -66,19 +66,19 @@ class MultiDataset(Dataset):
             self.p_ei, self.p_ew = self._graph(self.p_sim, min = self.handler.p_threshold)
             self.p_ei_sw, self.p_ew_sw = self._graph(self.p_sim_sw, min = self.handler.p_threshold)
 
-        heterodata = HeteroData()
-        heterodata['protein'].x = self.p_embeddings
-        heterodata['drug'].x = self.d_ecfps
-        hedge_index = []
-        hedge_weight = []
+        # heterodata = HeteroData()
+        # heterodata['protein'].x = self.p_embeddings
+        # heterodata['drug'].x = self.d_ecfps
+        # hedge_index = []
+        # hedge_weight = []
 
-        hindexes, hy = indexes, y if self.train else self._split(setting, fold, True)
-        for (i, j), l in zip(hindexes, hy):
-            hedge_index.append([i, j])
-            hedge_weight.append(l)
-        heterodata['drug', 'aff', 'protein'].edge_index = torch.tensor(hedge_index, dtype=torch.long, device=self.device).t().contiguous()
+        # hindexes, hy = indexes, y if self.train else self._split(setting, fold, True)
+        # for (i, j), l in zip(hindexes, hy):
+        #     hedge_index.append([i, j])
+        #     hedge_weight.append(l)
+        # heterodata['drug', 'aff', 'protein'].edge_index = torch.tensor(hedge_index, dtype=torch.long, device=self.device).t().contiguous()
         # heterodata['drug', 'aff', 'protein'].edge_weight = F.normalize(torch.tensor(hedge_weight, dtype=torch.float32, device=self.device), dim=-1)
-        self.heterodata = heterodata
+        # self.heterodata = heterodata
         
         self.indexes = torch.tensor(indexes, dtype=torch.long, device=self.device)
         if not new: self.y = torch.tensor(y, dtype=torch.float32, device=self.device).view(-1, 1)

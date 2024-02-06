@@ -5,8 +5,9 @@ from src.model.layer.gcn import GCN
 from torch_geometric.nn import Sequential, GCNConv
 
 class GNN(nn.Module):
-    def __init__(self):
+    def __init__(self, device):
         super(GNN, self).__init__()
+        self.device = device
         dim = 300 + 1024 + 1024 + 1024 + 1024
 
         self.encoder = nn.Sequential(
@@ -35,36 +36,39 @@ class GNN(nn.Module):
         )
 
         self.dp = nn.Dropout(.2)
-        # self.ecfps_sim = GCN(1024, 1024)
-        # self.gos_sim = GCN(-1, 1024)
+        if self.device == 'mps':
+            self.ecfps_sis = GCN(1024, 1024)
+            self.gos_sis = GCN(-1, 1024)
+            self.gos_sw = GCN(-1, 1024)
+        else:
+            self.ecfps_sis = Sequential('x, edge_index, edge_weight', [
+                (GCNConv(1024, 1024), 'x, edge_index, edge_weight -> x1'),
+                nn.LeakyReLU(),
+            ])
+            self.gos_sis = Sequential('x, edge_index, edge_weight', [
+                (GCNConv(-1, 1024), 'x, edge_index, edge_weight -> x1'),
+                nn.LeakyReLU(),
+            ])
+            self.gos_sw = Sequential('x, edge_index, edge_weight', [
+                (GCNConv(-1, 1024), 'x, edge_index, edge_weight -> x1'),
+                nn.LeakyReLU(),
+            ])
         # self.pro_drug = HeteroConv({
         #         ('drug', 'aff', 'protein'): GATConv((-1, -1), 1024),
         #     }, aggr='sum')
-        
-        self.ecfps_sim = Sequential('x, edge_index, edge_weight', [
-            (GCNConv(1024, 1024), 'x, edge_index, edge_weight -> x1'),
-            nn.LeakyReLU(),
-        ])
-
-        self.gos_sis = Sequential('x, edge_index, edge_weight', [
-            (GCNConv(-1, 1024), 'x, edge_index, edge_weight -> x1'),
-            nn.LeakyReLU(),
-        ])
-
-        self.gos_sw = Sequential('x, edge_index, edge_weight', [
-            (GCNConv(-1, 1024), 'x, edge_index, edge_weight -> x1'),
-            nn.LeakyReLU(),
-        ])
 
     def forward(self, d_index, p_index, d_vecs, p_embeddings, dataset):
         features = [d_vecs, p_embeddings]
 
-        features.append(self.ecfps_sim(dataset.d_ecfps, dataset.d_ei, dataset.d_ew)[d_index])
-        features.append(self.gos_sis(dataset.p_gos, dataset.p_ei, dataset.p_ew)[p_index])
-        features.append(self.gos_sw(dataset.p_gos, dataset.p_ei_sw, dataset.p_ew_sw)[p_index])
+        if self.device == 'mps':
+            features.append(F.leaky_relu(self.ecfps_sis(dataset.d_ecfps, dataset.d_ew))[d_index])
+            features.append(F.leaky_relu(self.gos_sis(dataset.p_gos, dataset.p_ew))[p_index])
+            features.append(F.leaky_relu(self.gos_sw(dataset.p_gos, dataset.p_ew_sw))[p_index])
+        else:
+            features.append(self.ecfps_sis(dataset.d_ecfps, dataset.d_ei, dataset.d_ew)[d_index])
+            features.append(self.gos_sis(dataset.p_gos, dataset.p_ei, dataset.p_ew)[p_index])
+            features.append(self.gos_sw(dataset.p_gos, dataset.p_ei_sw, dataset.p_ew_sw)[p_index])
 
-        # ecfps = F.leaky_relu(self.ecfps_sim(dataset.d_ecfps, dataset.d_ew))[d_index]
-        # gos = F.leaky_relu(self.gos_sim(dataset.p_gos, dataset.p_ew))[p_index]
         # p_vecs = self.pro_drug(dataset.heterodata.x_dict, dataset.heterodata.edge_index_dict)['protein'][p_index]
         # features.append(F.relu(p_vecs))
 
