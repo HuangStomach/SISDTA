@@ -131,9 +131,52 @@ def protein_go_vector(type = 'davis'):
 
     # df.to_csv('./data/{}/protein_go_vector.csv'.format(type))
 
+def protein_go_slim(dataType = 'davis', setType = 'agr'):
+    protein_dict = np.loadtxt('./data/{}/protein.csv'.format(dataType), dtype=str, delimiter=',')[:, 0]
+    protein_url = 'https://api.geneontology.org/api/ontology/ribbon/?subset=goslim_{}&subject=UniProtKB:{}'
+    df = None
+
+    for i, protein in enumerate(protein_dict):
+        sleep(1)
+        try:
+            req = request.Request(protein_url.format(setType, protein), headers={
+                'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.110 Safari/537.36'
+            })
+            data = request.urlopen(req).read()
+            text = json.loads(data)
+            columns = []
+
+            if i == 0:
+                categories = text['categories']
+                groups = categories[0]['groups'] + categories[1]['groups'] + categories[2]['groups']
+                for item in groups:
+                    if item['type'] == 'ALL': continue
+                    columns.append(item['id'])
+
+                df = pd.DataFrame(None, index=range(len(protein_dict)), columns=columns).fillna(0)
+
+            for key, value in text['subjects'][0]['groups'].items():
+                df.loc[i, key] = int(value['ALL']['nb_annotations'])
+
+            print(protein, 'OK')
+        except Exception as e:
+            print(protein, e)
+
+    df.to_csv('./data/{}/protein_go_slim.csv'.format(dataType))
+
+    # df = pd.DataFrame(None, index=proteins, columns=list(go_set)).fillna(0)
+    # for i, protein in enumerate(proteins):
+    #     for go in protein_go[i][1].split(";"):
+    #         df.loc[protein, go] = 1
+
+    # df.to_csv('./data/{}/protein_go_vector.csv'.format(type))
+
 def protein_sim(dataType = 'davis'):
     protein_gos =  pd.read_csv('./data/{}/protein_go_vector.csv'.format(dataType), 
         delimiter=',', header=0, index_col=0).to_numpy(int)
+    # protein_gos =  pd.read_csv('./data/{}/protein_go_slim.csv'.format(dataType), 
+    #     delimiter=',', header=0, index_col=0).to_numpy(int)
+    protein_gos[protein_gos > 0] = 1
     protein_count = protein_gos.shape[0]
 
     sis = np.zeros((protein_count, protein_count))
@@ -248,7 +291,7 @@ def drug_sim(dataType = 'davis'):
 if __name__=='__main__':
     # drug_ecfps('metz')
     # drug_sim('metz')
-    protein_embedding('davis')
+    # protein_go_slim('davis', 'generic')
     # protein_go('metz')
     # protein_go_vector('metz')
-    # protein_sim('metz')
+    protein_sim('davis')
