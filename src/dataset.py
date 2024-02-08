@@ -45,9 +45,9 @@ class MultiDataset(Dataset):
         self.d_sim = torch.tensor(self.handler.d_sim, dtype=torch.float32, device=self.device)
 
         self.p_embeddings = torch.tensor(self.handler.p_embeddings, dtype=torch.float32, device=self.device)
-        # go_sum = self.handler.p_gos.sum(axis=0)
-        # go_high = np.delete(self.handler.p_gos, np.where(go_sum < 5)[0].tolist(), axis=1)
-        self.p_gos = torch.tensor( self.handler.p_gos, dtype=torch.float32, device=self.device)
+        go_sum = self.handler.p_gos.sum(axis=0)
+        go_high = np.delete(self.handler.p_gos, np.where(go_sum < 2)[0].tolist(), axis=1)
+        self.p_gos = torch.tensor(go_high, dtype=torch.float32, device=self.device)
         self.p_sim = torch.tensor(self.handler.p_sim, dtype=torch.float32, device=self.device)
         self.p_sim_sw = torch.tensor(self.handler.p_sim_sw, dtype=torch.float32, device=self.device)
 
@@ -165,7 +165,7 @@ class MultiDataset(Dataset):
                 if k >= neighbor_num and matrix[i][neighbor] < min: break
                 edge_index.append([neighbor, i])
                 edge_weight.append(matrix[i][neighbor])
-                if matrix[i][neighbor] < max: 
+                if matrix[i][neighbor] < max:
                     k += 1
 
         return torch.tensor(edge_index, dtype=torch.long, device=self.device).t().contiguous(), \
@@ -182,7 +182,6 @@ class MultiDataset(Dataset):
             for neighbor in neighbors:
                 if k >= neighbor_num and matrix[i][neighbor] < min: break
                 if matrix[i][neighbor] < max: 
-                    _m[i][neighbor] = (miu ** k) * matrix[i][neighbor]
                     k += 1
 
             _m[i][i] = 1.0

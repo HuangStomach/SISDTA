@@ -8,8 +8,8 @@ class GNN(nn.Module):
     def __init__(self, device):
         super(GNN, self).__init__()
         self.device = device
-        dim = 300 + 1024 + 1024 + 1024 + 1024
-
+        dim = 1024 + 1024 + 1024
+        
         self.encoder = nn.Sequential(
             nn.Linear(dim, 2048),
             nn.BatchNorm1d(2048),
@@ -58,7 +58,7 @@ class GNN(nn.Module):
         #     }, aggr='sum')
 
     def forward(self, d_index, p_index, d_vecs, p_embeddings, dataset):
-        features = [d_vecs, p_embeddings]
+        features = [p_embeddings]
 
         if self.device == 'mps':
             features.append(F.leaky_relu(self.ecfps_sis(dataset.d_ecfps, dataset.d_ew))[d_index])
@@ -66,8 +66,8 @@ class GNN(nn.Module):
             features.append(F.leaky_relu(self.gos_sw(dataset.p_gos, dataset.p_ew_sw))[p_index])
         else:
             features.append(self.ecfps_sis(dataset.d_ecfps, dataset.d_ei, dataset.d_ew)[d_index])
-            features.append(self.gos_sis(dataset.p_gos, dataset.p_ei, dataset.p_ew)[p_index])
-            features.append(self.gos_sw(dataset.p_gos, dataset.p_ei_sw, dataset.p_ew_sw)[p_index])
+            features.append(self.gos_sis(self.dp(dataset.p_gos), dataset.p_ei, dataset.p_ew)[p_index])
+            # features.append(self.gos_sw(self.dp(dataset.p_gos), dataset.p_ei_sw, dataset.p_ew_sw)[p_index])
 
         # p_vecs = self.pro_drug(dataset.heterodata.x_dict, dataset.heterodata.edge_index_dict)['protein'][p_index]
         # features.append(F.relu(p_vecs))

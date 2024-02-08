@@ -263,7 +263,7 @@ def drug_sim(dataType = 'davis'):
     sis = np.zeros((drug_count, drug_count))
     # cosine = np.zeros((drug_count, drug_count))
     # pearson = np.zeros((drug_count, drug_count))
-    # euclidean = np.zeros((drug_count, drug_count))
+    euclidean = np.zeros((drug_count, drug_count))
     jaccard = np.zeros((drug_count, drug_count))
 
     for i in range(drug_count):
@@ -276,23 +276,23 @@ def drug_sim(dataType = 'davis'):
             # pearson
             # pearson[i][j] = 1 - distance.correlation(drug_ecfps[i], drug_ecfps[j])
             # euclidean
-            # euclidean[i][j] = distance.euclidean(drug_ecfps[i], drug_ecfps[j])
-            jaccard
+            euclidean[i][j] = distance.euclidean(drug_ecfps[i], drug_ecfps[j])
+            # jaccard
             jaccard[i][j] = 1 - distance.jaccard(drug_ecfps[i], drug_ecfps[j])
 
     np.savetxt('./data/{}/drug_sis.csv'.format(dataType), sis, fmt='%s', delimiter=',')
     # np.savetxt('./data/{}/drug_cosine.csv'.format(dataType), cosine, fmt='%s', delimiter=',')
     # np.savetxt('./data/{}/drug_pearson.csv'.format(dataType), pearson, fmt='%s', delimiter=',')
-    # euclidean_max, euclidean_min = euclidean.max(axis=0), euclidean.min(axis=0)
-    # euclidean = 1 - ((euclidean - euclidean_min) / (euclidean_max - euclidean_min))
-    # np.savetxt('./data/{}/drug_euclidean.csv'.format(dataType), euclidean, fmt='%s', delimiter=',')
+    euclidean_max, euclidean_min = euclidean.max(axis=0), euclidean.min(axis=0)
+    euclidean = 1 - ((euclidean - euclidean_min) / (euclidean_max - euclidean_min))
+    np.savetxt('./data/{}/drug_euclidean.csv'.format(dataType), euclidean, fmt='%s', delimiter=',')
     np.savetxt('./data/{}/drug_jaccard.csv'.format(dataType), jaccard, fmt='%s', delimiter=',')
 
 if __name__=='__main__':
     # drug_ecfps('metz')
-    # drug_sim('metz')
+    drug_sim('kiba')
     # protein_go_slim('davis', 'generic')
     # protein_embedding('davis')
     # protein_go('metz')
     # protein_go_vector('metz')
-    protein_sim('davis')
+    # protein_sim('davis')
