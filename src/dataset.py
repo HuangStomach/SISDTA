@@ -85,7 +85,8 @@ class MultiDataset(Dataset):
 
     def _split(self, setting, fold, isTrain=True):
         if hasattr(self.handler, '_split'):
-            return self.handler._split(setting, fold, isTrain, RANDOM_STATE)
+            res = self.handler._split(setting, fold, isTrain, RANDOM_STATE)
+            if len(res[0]) > 0: return res
 
         y_durgs, y_proteins = np.where(np.isnan(self.handler.label) == False)
         
@@ -182,8 +183,8 @@ class MultiDataset(Dataset):
             for neighbor in neighbors:
                 if k >= neighbor_num and matrix[i][neighbor] < min: break
                 if matrix[i][neighbor] < max: 
+                    _m[neighbor][i] = (miu ** k) * matrix[i][neighbor]
                     k += 1
-
             _m[i][i] = 1.0
 
         return torch.tensor(_m, dtype=torch.float32, device=self.device)
