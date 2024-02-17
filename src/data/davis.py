@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+from sklearn.model_selection import KFold
 
 class Davis:
     def __init__(self, train=True, sim_type='sis', d_threshold=0.6, p_threshold=0.6):
@@ -11,6 +12,7 @@ class Davis:
 
         self.train_setting1_path = './data/davis/folds/train_fold_setting1.txt'
         self.test_setting1_path = './data/davis/folds/test_fold_setting1.txt'
+        self.setting1_path = './data/davis/folds/setting_1.csv'
         self.setting2_path = './data/davis/folds/fold_setting2.json'
         self.setting3_path = './data/davis/folds/fold_setting3.json'
 
@@ -35,7 +37,7 @@ class Davis:
         self.p_gos = pd.read_csv(self.p_gos_path, delimiter=',', header=0, index_col=0).to_numpy(int)
         self.p_sim = np.loadtxt('./data/davis/protein_{}.csv'.format(self.sim_type), delimiter=',', dtype=float, comments=None)
 
-        p_sim = np.loadtxt('./data/davis/target-target_similarities_WS.txt', delimiter=' ', dtype=float, comments=None)
+        p_sim = np.loadtxt(self.p_sim_path, delimiter=' ', dtype=float, comments=None)
         p_max, p_min = p_sim.max(axis=0), p_sim.min(axis=0)
         self.p_sim_sw = (p_sim - p_min) / (p_max - p_min)
 
@@ -43,3 +45,29 @@ class Davis:
             header=None).to_numpy(float)
 
         self.label = np.loadtxt('./data/davis/Y.txt', delimiter=',', dtype=float, comments=None)
+
+    def _split(self, setting, fold, isTrain, random_state):
+        indexes = []
+        y = []
+        if setting == 0:
+            settings = np.loadtxt(self.setting1_path, delimiter=',', dtype=float, comments=None)
+            settings = settings[np.where(settings[:, 3] == 1 if isTrain else 0)]
+
+            for [drug, target, value, _] in settings:
+                indexes.append([drug, target])
+                y.append(value)
+            
+            if isTrain:
+                protines = np.loadtxt('./data/davis/protein.csv', delimiter=',', dtype=str, comments=None)
+                v_index = []
+                for i, row in enumerate(protines):
+                    if '(' not in row[1]: continue
+                    v_index.append(i) # 蛋白质变体
+
+                without_v = settings[np.isin(settings[:, 1], v_index, invert=True)]
+                length = settings.shape[0] - without_v.shape[0]
+                indexes.extend(without_v[:length, :2].tolist())
+                y.extend(without_v[:length, 2].tolist())
+                print(y)
+
+        return (indexes, y)
