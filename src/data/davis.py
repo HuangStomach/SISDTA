@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+import random
 from sklearn.model_selection import KFold
 
 class Davis:
@@ -56,18 +57,5 @@ class Davis:
             for [drug, target, value, _] in settings:
                 indexes.append([drug, target])
                 y.append(value)
-            
-            if isTrain:
-                protines = np.loadtxt('./data/davis/protein.csv', delimiter=',', dtype=str, comments=None)
-                v_index = []
-                for i, row in enumerate(protines):
-                    if '(' not in row[1]: continue
-                    v_index.append(i) # 蛋白质变体
-
-                without_v = settings[np.isin(settings[:, 1], v_index, invert=True)]
-                length = settings.shape[0] - without_v.shape[0]
-                indexes.extend(without_v[:length, :2].tolist())
-                y.extend(without_v[:length, 2].tolist())
-                print(y)
 
         return (indexes, y)
