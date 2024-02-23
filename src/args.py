@@ -5,7 +5,7 @@ class Args:
         self.parser = argparse.ArgumentParser()
         self.parser.add_argument('--device', default='cpu', type=str, metavar=None, 
             help='Name of the processor used for computing')
-        self.parser.add_argument('-d', '--dataset', default='kiba', type=str, metavar='[kiba, davis]', 
+        self.parser.add_argument('-d', '--dataset', default='kiba', type=str, metavar='[kiba, davis, fdavis]', 
             help='Name of the selected data set')
         self.parser.add_argument('--sim-type', default='sis', type=str, metavar=None,
             help='Similarity Strategy')

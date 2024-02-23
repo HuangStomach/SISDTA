@@ -46,7 +46,7 @@ class MultiDataset(Dataset):
 
         self.p_embeddings = torch.tensor(self.handler.p_embeddings, dtype=torch.float32, device=self.device)
         go_sum = self.handler.p_gos.sum(axis=0)
-        go_high = np.delete(self.handler.p_gos, np.where(go_sum < 0)[0].tolist(), axis=1)
+        go_high = np.delete(self.handler.p_gos, np.where(go_sum < 1)[0].tolist(), axis=1)
         self.p_gos = torch.tensor(go_high, dtype=torch.float32, device=self.device)
         self.p_sim = torch.tensor(self.handler.p_sim, dtype=torch.float32, device=self.device)
         self.p_sim_sw = torch.tensor(self.handler.p_sim_sw, dtype=torch.float32, device=self.device)
