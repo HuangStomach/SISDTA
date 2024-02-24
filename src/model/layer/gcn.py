@@ -36,14 +36,14 @@ class GCN(Module):
         if self.bias is not None:
             self.bias.data.uniform_(-stdv, stdv)
 
-    def forward(self, input, adj):
+    def forward(self, x, edge_index):
         if is_uninitialized_parameter(self.weight):
-            self.in_features = input[0].size(-1)
+            self.in_features = x[0].size(-1)
             self.weight.materialize((self.in_features, self.out_features), dtype=torch.float)
             self.reset_parameters()
     
-        support = torch.mm(input, self.weight)
-        output = torch.spmm(adj, support)
+        support = torch.mm(x, self.weight)
+        output = torch.spmm(edge_index, support)
         if self.bias is not None:
             return output + self.bias
         else:

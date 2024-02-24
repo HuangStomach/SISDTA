@@ -9,9 +9,11 @@ class Args:
             help='Name of the selected data set')
         self.parser.add_argument('--sim-type', default='sis', type=str, metavar=None,
             help='Similarity Strategy')
-        self.parser.add_argument('-dt', '--d_threshold', default=0.7, type=float, metavar=None,
+        self.parser.add_argument('-dp', '--dropout', default=.0, type=float, metavar=None,
+            help='Dropout')
+        self.parser.add_argument('-dt', '--d_threshold', default=.7, type=float, metavar=None,
             help='Thresholds for drug relationship graphs')
-        self.parser.add_argument('-pt', '--p_threshold', default=0.7, type=float, metavar=None,
+        self.parser.add_argument('-pt', '--p_threshold', default=.7, type=float, metavar=None,
             help='Thresholds for protein relationship graphs')
 
         if action == 'train':
@@ -21,15 +23,12 @@ class Args:
                 help='Number of training iterations required')
             self.parser.add_argument('-b', '--batch-size', default=512, type=int, metavar=None,
                 help='Size of each training batch')
-            self.parser.add_argument('-lr', '--learning-rate', default=0.002, type=float, metavar=None,
+            self.parser.add_argument('-lr', '--learning-rate', default=.002, type=float, metavar=None,
                 help='The step size at each iteration')
             self.parser.add_argument('-l1', '--lambda_1', default=1, type=float, metavar=None,
                 help='AutoEncoder loss function weights')
             self.parser.add_argument('-w', '--weight_decay', default=0, type=float, metavar=None,
                 help='weight decay')
-
-            # parser.add_argument('-l2', '--lambda_2', default=0.00001, type=float, metavar='float')
-            # parser.add_argument('-u', '--unit', default=0.1, type=float, metavar='float', help='unit of target')
     
     def parser(self):
         return self.parser

@@ -58,27 +58,11 @@ class MultiDataset(Dataset):
 
         print('generating similarity graph...')
         if self.device == 'mps':
-            self.d_ew = self._matrix(self.d_sim, min = self.handler.d_threshold)
-            self.p_ew = self._matrix(self.p_sim, min = self.handler.p_threshold)
-            self.p_ew_sw = self._matrix(self.p_sim_sw, min = self.handler.p_threshold)
+            self.d_ei, self.d_ew = self._matrix(self.d_sim, min = self.handler.d_threshold)
+            self.p_ei, self.p_ew = self._matrix(self.p_sim, min = self.handler.p_threshold)
         else:
             self.d_ei, self.d_ew = self._graph(self.d_sim, min = self.handler.d_threshold)
             self.p_ei, self.p_ew = self._graph(self.p_sim, min = self.handler.p_threshold)
-            self.p_ei_sw, self.p_ew_sw = self._graph(self.p_sim_sw, min = self.handler.p_threshold)
-
-        # heterodata = HeteroData()
-        # heterodata['protein'].x = self.p_embeddings
-        # heterodata['drug'].x = self.d_ecfps
-        # hedge_index = []
-        # hedge_weight = []
-
-        # hindexes, hy = indexes, y if self.train else self._split(setting, fold, True)
-        # for (i, j), l in zip(hindexes, hy):
-        #     hedge_index.append([i, j])
-        #     hedge_weight.append(l)
-        # heterodata['drug', 'aff', 'protein'].edge_index = torch.tensor(hedge_index, dtype=torch.long, device=self.device).t().contiguous()
-        # heterodata['drug', 'aff', 'protein'].edge_weight = F.normalize(torch.tensor(hedge_weight, dtype=torch.float32, device=self.device), dim=-1)
-        # self.heterodata = heterodata
         
         self.indexes = torch.tensor(indexes, dtype=torch.long, device=self.device)
         if not new: self.y = torch.tensor(y, dtype=torch.float32, device=self.device).view(-1, 1)
@@ -172,9 +156,10 @@ class MultiDataset(Dataset):
         return torch.tensor(edge_index, dtype=torch.long, device=self.device).t().contiguous(), \
             torch.tensor(edge_weight, dtype=torch.float32, device=self.device)
 
-    def _matrix(self, matrix, neighbor_num=5, min=0.5, max=1.0, miu=1.0):
+    def _matrix(self, matrix, neighbor_num=5, min=0.5, max=1.0):
         size = matrix.size()[0]
-        _m = np.zeros((size, size))
+        _i = np.zeros((size, size))
+        _w = np.zeros((size, size))
         
         for i in range(size):
             neighbors = (-matrix[i]).argsort()
@@ -183,11 +168,13 @@ class MultiDataset(Dataset):
             for neighbor in neighbors:
                 if k >= neighbor_num and matrix[i][neighbor] < min: break
                 if matrix[i][neighbor] < max: 
-                    _m[neighbor][i] = (miu ** k) * matrix[i][neighbor]
+                    _w[neighbor][i] = matrix[i][neighbor]
+                    _i[neighbor][i] = 1
                     k += 1
-            _m[i][i] = 1.0
+            _w[i][i] = 1.0
+            _i[i][i] = 1.0
 
-        return torch.tensor(_m, dtype=torch.float32, device=self.device)
+        return torch.tensor(_i, dtype=torch.float32, device=self.device), torch.tensor(_w, dtype=torch.float32, device=self.device)
 
     def __getitem__(self, index):
         dindex, pindex = self.indexes[index]
