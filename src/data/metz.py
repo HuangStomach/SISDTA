@@ -12,8 +12,6 @@ class Metz:
         self.p_threshold = p_threshold
 
         self.setting1_path = './data/metz/folds/setting_1.csv' # drug,target,value,fold
-        # self.setting2_path = './data/metz/folds/fold_setting2.json'
-        # self.setting3_path = './data/metz/folds/fold_setting3.json'
 
         self.d_ecfps_path = './data/metz/drug_ecfps.csv'
         self.d_vecs_path = './data/metz/drug_vec.csv'

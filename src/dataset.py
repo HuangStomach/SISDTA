@@ -49,7 +49,6 @@ class MultiDataset(Dataset):
         go_high = np.delete(self.handler.p_gos, np.where(go_sum < 1)[0].tolist(), axis=1)
         self.p_gos = torch.tensor(go_high, dtype=torch.float32, device=self.device)
         self.p_sim = torch.tensor(self.handler.p_sim, dtype=torch.float32, device=self.device)
-        self.p_sim_sw = torch.tensor(self.handler.p_sim_sw, dtype=torch.float32, device=self.device)
 
         self.dsize = self.d_sim.size()[0]
         self.psize = self.p_sim.size()[0]
