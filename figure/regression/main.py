@@ -23,5 +23,3 @@ if __name__=='__main__':
         for i in range(len(labels)):
             file.write('[{}, {}],\n'.format(preds[i], labels[i]))
         file.write(']\n')
-
-

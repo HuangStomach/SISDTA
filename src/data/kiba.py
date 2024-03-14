@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+from sklearn.model_selection import KFold
 
 class Kiba:
     def __init__(self, train = True, sim_type='sis', d_threshold=0.7, p_threshold=0.7):
@@ -33,9 +34,24 @@ class Kiba:
         self.d_sim = np.loadtxt(d_sim_path, delimiter=delimiter, dtype=float, comments=None)
 
         self.p_gos = pd.read_csv(self.p_gos_path, delimiter=',', header=0, index_col=0).to_numpy(float)
-        self.p_sim = np.loadtxt(self.p_sim_path, delimiter='\t', dtype=float, comments=None)
+        self.p_sim = np.loadtxt('./data/kiba/protein_{}.csv'.format(self.sim_type), delimiter=',', dtype=float, comments=None)
+        self.p_sim_sw = np.loadtxt(self.p_sim_path, delimiter='\t', dtype=float, comments=None)
 
         self.p_embeddings = pd.read_csv('./data/kiba/protein_embedding_avg.csv', 
             delimiter=',', header=None).to_numpy(float)
+        self.label = np.loadtxt('./data/kiba/Y.txt', delimiter=',', dtype=float, comments=None)
 
-        self.y = np.loadtxt('./data/kiba/Y.txt', delimiter=',', dtype=float, comments=None)
+    def _split(self, setting, fold, isTrain, random_state):
+        indexes = []
+        y = []
+        if setting == 1:
+            settings = np.loadtxt(self.setting1_path, delimiter=',', dtype=float, comments=None)
+            kf = KFold(n_splits=5, random_state=random_state, shuffle=True).split(settings)
+            train, test = list(kf)[fold]
+            indices = train if isTrain else test
+
+            for [drug, target, value] in settings[indices]:
+                indexes.append([drug, target])
+                y.append(value)
+
+        return (indexes, y)

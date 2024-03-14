@@ -1,5 +1,7 @@
 import pandas as pd
 import numpy as np
+import random
+from sklearn.model_selection import KFold
 
 class Davis:
     def __init__(self, train=True, sim_type='sis', d_threshold=0.6, p_threshold=0.6):
@@ -11,6 +13,7 @@ class Davis:
 
         self.train_setting1_path = './data/davis/folds/train_fold_setting1.txt'
         self.test_setting1_path = './data/davis/folds/test_fold_setting1.txt'
+        self.setting1_path = './data/davis/folds/setting_1.csv'
         self.setting2_path = './data/davis/folds/fold_setting2.json'
         self.setting3_path = './data/davis/folds/fold_setting3.json'
 
@@ -32,12 +35,27 @@ class Davis:
             delimiter = ','
         self.d_sim = np.loadtxt(d_sim_path, delimiter=delimiter, dtype=float, comments=None)
 
-        self.p_gos = pd.read_csv(self.p_gos_path, delimiter=',', header=0, index_col=0).to_numpy(float)
+        self.p_gos = pd.read_csv(self.p_gos_path, delimiter=',', header=0, index_col=0).to_numpy(int)
+        self.p_sim = np.loadtxt('./data/davis/protein_{}.csv'.format(self.sim_type), delimiter=',', dtype=float, comments=None)
+
         p_sim = np.loadtxt(self.p_sim_path, delimiter=' ', dtype=float, comments=None)
         p_max, p_min = p_sim.max(axis=0), p_sim.min(axis=0)
-        self.p_sim = (p_sim - p_min) / (p_max - p_min)
+        self.p_sim_sw = (p_sim - p_min) / (p_max - p_min)
 
-        self.p_embeddings = pd.read_csv('./data/davis/protein_embedding.csv', delimiter=',', header=None,
-            index_col=0).to_numpy(float)
+        self.p_embeddings = pd.read_csv('./data/davis/protein_embedding_avg.csv', delimiter=',', 
+            header=None).to_numpy(float)
 
-        self.y = np.loadtxt('./data/davis/Y.txt', delimiter=',', dtype=float, comments=None)
+        self.label = np.loadtxt('./data/davis/Y.txt', delimiter=',', dtype=float, comments=None)
+
+    def _split(self, setting, fold, isTrain, random_state):
+        indexes = []
+        y = []
+        if setting == 0:
+            settings = np.loadtxt(self.setting1_path, delimiter=',', dtype=float, comments=None)
+            settings = settings[np.where(settings[:, 3] == 1 if isTrain else 0)]
+
+            for [drug, target, value, _] in settings:
+                indexes.append([drug, target])
+                y.append(value)
+
+        return (indexes, y)
