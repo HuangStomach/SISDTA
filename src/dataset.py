@@ -11,15 +11,11 @@ from torch_geometric.data import HeteroData
 from src.data.kiba import Kiba
 from src.data.davis import Davis
 from src.data.fdavis import FDavis
-from src.data.metz import Metz
-from src.data.bmetz import bMetz
 
 handlers = {
     'kiba': Kiba,
     'davis': Davis,
     'fdavis': FDavis,
-    'metz': Metz,
-    'bmetz': bMetz,
 }
 RANDOM_STATE = random.randint(1, 100000000)
 
