@@ -7,7 +7,7 @@ class GNN(nn.Module):
     def __init__(self, device, dropout):
         super(GNN, self).__init__()
         self.device = device
-        dim = 512 + 512 + 1024 + 1024
+        dim = 256 + 256 + 1024 + 1024
         
         self.encoder = nn.Sequential(
             nn.Linear(dim, 2048),
@@ -35,15 +35,15 @@ class GNN(nn.Module):
         )
 
         self.d_vecs = nn.Sequential(
-            nn.Linear(300, 512),
-            nn.BatchNorm1d(512),
+            nn.Linear(300, 256),
+            nn.BatchNorm1d(256),
             nn.LeakyReLU(),
             nn.Dropout(dropout),
         )
 
         self.p_embeddings = nn.Sequential(
-            nn.Linear(1024, 512),
-            nn.BatchNorm1d(512),
+            nn.Linear(1024, 256),
+            nn.BatchNorm1d(256),
             nn.LeakyReLU(),
             nn.Dropout(dropout),
         )
