@@ -25,6 +25,7 @@ All `data` is located in the data directory, which is derived from the original 
 
 ``` python
 python main.py 
+    [-m MINDSPORE]
     [--device DEVICE] 
     [-d [kiba, davis]] 
     [--sim-type SIM_TYPE] 
@@ -42,6 +43,8 @@ The parameters are described below and can also be viewed by executing `python m
 ``` python
 options:
   -h, --help            show this help message and exit
+  -m MINDSPORE, --mindspore MINDSPORE
+                        Whether to use the mindspore environment
   --device DEVICE       Name of the processor used for computing
   -d [kiba, davis], --dataset [kiba, davis]
                         Name of the selected data set
