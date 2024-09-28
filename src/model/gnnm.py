@@ -37,35 +37,35 @@ class GNNM(nn.Cell):
             nn.Dense(300, 512),
             nn.BatchNorm1d(512),
             nn.LeakyReLU(),
-            nn.Dropout(keep_prob=1-dropout),
+            nn.Dropout(p=dropout),
         ])
 
         self.p_embeddings = nn.SequentialCell([
             nn.Dense(1024, 512),
             nn.BatchNorm1d(512),
             nn.LeakyReLU(),
-            nn.Dropout(keep_prob=1-dropout),
+            nn.Dropout(p=dropout),
         ])
         
+        self.ecfps_gcn = GCNM(1024, 1024)
         self.ecfps_sis = nn.SequentialCell([
-            GCNM(1024, 1024),
             nn.BatchNorm1d(1024),
             nn.LeakyReLU(),
-            nn.Dropout(keep_prob=1-dropout),
+            nn.Dropout(p=dropout),
         ])
         
+        self.gos_gcn = GCNM(-1, 1024)
         self.gos_sis = nn.SequentialCell([
-            GCNM(-1, 1024),
             nn.BatchNorm1d(1024),
             nn.LeakyReLU(),
-            nn.Dropout(keep_prob=1-dropout),
+            nn.Dropout(p=dropout),
         ])
 
     def construct(self, d_index, p_index, d_vecs, p_embeddings, dataset):
         features = [self.d_vecs(d_vecs), self.p_embeddings(p_embeddings)]
 
-        features.append(self.ecfps_sis(dataset.d_ecfps, dataset.d_ew)[d_index])
-        features.append(self.gos_sis(dataset.p_gos, dataset.p_ew)[p_index])
+        features.append(self.ecfps_sis(self.ecfps_gcn(dataset.d_ecfps, dataset.d_ew)[d_index]))
+        features.append(self.gos_sis(self.gos_gcn(dataset.p_gos, dataset.p_ew)[p_index]))
 
         feature = P.Concat(axis=1)(features)
         encoded = self.encoder(feature)

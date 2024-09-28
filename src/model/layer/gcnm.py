@@ -44,11 +44,10 @@ class GCNM(nn.Cell):
             self.reset_parameters()
 
         # Support computation: x * W
-        support = ops.MatMul()(x, self.weight)
+        support = ops.MatMul()(Tensor(x), self.weight)
         
         # Output computation: A * (x * W)
-        spmm = ops.SparseTensorDenseMatmul()
-        output = spmm(edge_index, support)
+        output = ops.MatMul()(edge_index, support)
         
         # Add bias if exists
         if self.bias is not None:

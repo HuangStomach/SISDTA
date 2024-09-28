@@ -34,18 +34,23 @@ class MultiDatasetM(Dataset):
         self._check_exists()
         self.handler._load_data()
 
-        self.d_vecs = mindspore.tensor(self.handler.d_vecs, dtype=mindspore.float32)
-        self.d_ecfps = mindspore.tensor(self.handler.d_ecfps, dtype=mindspore.float32)
-        self.d_sim = mindspore.tensor(self.handler.d_sim, dtype=mindspore.float32)
+        # self.d_vecs = mindspore.tensor(self.handler.d_vecs, dtype=mindspore.float32)
+        # self.d_ecfps = mindspore.tensor(self.handler.d_ecfps, dtype=mindspore.float32)
+        # self.d_sim = mindspore.tensor(self.handler.d_sim, dtype=mindspore.float32)
+        self.d_vecs = self.handler.d_vecs.astype('float32')
+        self.d_ecfps = self.handler.d_ecfps.astype('float32')
+        self.d_sim = self.handler.d_sim
 
-        self.p_embeddings = mindspore.tensor(self.handler.p_embeddings, dtype=mindspore.float32)
+        # self.p_embeddings = mindspore.tensor(self.handler.p_embeddings, dtype=mindspore.float32)
+        self.p_embeddings = self.handler.p_embeddings.astype('float32')
         go_sum = self.handler.p_gos.sum(axis=0)
         go_high = np.delete(self.handler.p_gos, np.where(go_sum < 1)[0].tolist(), axis=1)
-        self.p_gos = mindspore.tensor(go_high, dtype=mindspore.float32)
-        self.p_sim = mindspore.tensor(self.handler.p_sim, dtype=mindspore.float32)
-
-        self.dsize = self.d_sim.size()[0]
-        self.psize = self.p_sim.size()[0]
+        # self.p_gos = mindspore.tensor(go_high, dtype=mindspore.float32)
+        # self.p_sim = mindspore.tensor(self.handler.p_sim, dtype=mindspore.float32)
+        self.p_gos = go_high.astype('float32')
+        self.p_sim = self.handler.p_sim
+        self.dsize = self.d_sim.shape[0]
+        self.psize = self.p_sim.shape[0]
 
         indexes, y = self._split(setting, fold, self.train)
 
@@ -53,8 +58,10 @@ class MultiDatasetM(Dataset):
         self.d_ei, self.d_ew = self._matrix(self.d_sim, min = self.handler.d_threshold)
         self.p_ei, self.p_ew = self._matrix(self.p_sim, min = self.handler.p_threshold)
         
-        self.indexes = mindspore.tensor(indexes, dtype=mindspore.long)
-        if not new: self.y = mindspore.tensor(y, dtype=mindspore.float32).view(-1, 1)
+        # self.indexes = mindspore.tensor(indexes, dtype=mindspore.uint32)
+        # if not new: self.y = mindspore.tensor(y, dtype=mindspore.float32).view(-1, 1)
+        self.indexes = indexes
+        if not new: self.y = y
 
     def _split(self, setting, fold, isTrain=True):
         if hasattr(self.handler, '_split'):
@@ -128,7 +135,7 @@ class MultiDatasetM(Dataset):
                 self.handler.drugs, self.handler.proteins = y_durgs[indices], y_proteins[indices]
 
     def _matrix(self, matrix, neighbor_num=5, min=0.5, max=1.0):
-        size = matrix.size()[0]
+        size = matrix.shape[0]
         _i = np.zeros((size, size))
         _w = np.zeros((size, size))
         
@@ -150,7 +157,6 @@ class MultiDatasetM(Dataset):
 
     def __getitem__(self, index):
         dindex, pindex = self.indexes[index]
-        
         res = [
             dindex, pindex,
             self.d_vecs[dindex], self.p_embeddings[pindex], 
@@ -160,7 +166,7 @@ class MultiDatasetM(Dataset):
         return res
 
     def __len__(self):
-        return self.indexes.size(dim=0)
+        return len(self.indexes)
 
     def _check_exists(self):
         output_dir = './output/{}/'.format(self.dataset)
