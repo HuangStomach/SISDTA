@@ -40,7 +40,7 @@ class Davis:
 
         p_sim = np.loadtxt(self.p_sim_path, delimiter=' ', dtype=float, comments=None)
         p_max, p_min = p_sim.max(axis=0), p_sim.min(axis=0)
-        self.p_sim = (p_sim - p_min) / (p_max - p_min)
+        self.p_sim_sw = (p_sim - p_min) / (p_max - p_min)
 
         self.p_embeddings = pd.read_csv('./data/davis/protein_embedding_avg.csv', delimiter=',', 
             header=None).to_numpy(float)

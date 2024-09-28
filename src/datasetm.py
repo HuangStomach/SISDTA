@@ -3,7 +3,7 @@ import json
 import random
 import numpy as np
 
-import torch
+import mindspore
 from torch.utils.data import Dataset
 
 from src.data.kiba import Kiba
@@ -17,7 +17,7 @@ handlers = {
 }
 RANDOM_STATE = random.randint(1, 100000000)
 
-class MultiDataset(Dataset):
+class MultiDatasetM(Dataset):
     def __init__(self, 
         dataset = 'kiba', train = True, device = 'cpu', 
         sim_type = 'sis', new = False, d_threshold = 0.6, p_threshold = 0.6,
@@ -34,15 +34,15 @@ class MultiDataset(Dataset):
         self._check_exists()
         self.handler._load_data()
 
-        self.d_vecs = torch.tensor(self.handler.d_vecs, dtype=torch.float32, device=self.device)
-        self.d_ecfps = torch.tensor(self.handler.d_ecfps, dtype=torch.float32, device=self.device)
-        self.d_sim = torch.tensor(self.handler.d_sim, dtype=torch.float32, device=self.device)
+        self.d_vecs = mindspore.tensor(self.handler.d_vecs, dtype=mindspore.float32)
+        self.d_ecfps = mindspore.tensor(self.handler.d_ecfps, dtype=mindspore.float32)
+        self.d_sim = mindspore.tensor(self.handler.d_sim, dtype=mindspore.float32)
 
-        self.p_embeddings = torch.tensor(self.handler.p_embeddings, dtype=torch.float32, device=self.device)
+        self.p_embeddings = mindspore.tensor(self.handler.p_embeddings, dtype=mindspore.float32)
         go_sum = self.handler.p_gos.sum(axis=0)
         go_high = np.delete(self.handler.p_gos, np.where(go_sum < 1)[0].tolist(), axis=1)
-        self.p_gos = torch.tensor(go_high, dtype=torch.float32, device=self.device)
-        self.p_sim = torch.tensor(self.handler.p_sim, dtype=torch.float32, device=self.device)
+        self.p_gos = mindspore.tensor(go_high, dtype=mindspore.float32)
+        self.p_sim = mindspore.tensor(self.handler.p_sim, dtype=mindspore.float32)
 
         self.dsize = self.d_sim.size()[0]
         self.psize = self.p_sim.size()[0]
@@ -50,15 +50,11 @@ class MultiDataset(Dataset):
         indexes, y = self._split(setting, fold, self.train)
 
         print('generating similarity graph...')
-        if self.device == 'mps':
-            self.d_ei, self.d_ew = self._matrix(self.d_sim, min = self.handler.d_threshold)
-            self.p_ei, self.p_ew = self._matrix(self.p_sim, min = self.handler.p_threshold)
-        else:
-            self.d_ei, self.d_ew = self._graph(self.d_sim, min = self.handler.d_threshold)
-            self.p_ei, self.p_ew = self._graph(self.p_sim, min = self.handler.p_threshold)
+        self.d_ei, self.d_ew = self._matrix(self.d_sim, min = self.handler.d_threshold)
+        self.p_ei, self.p_ew = self._matrix(self.p_sim, min = self.handler.p_threshold)
         
-        self.indexes = torch.tensor(indexes, dtype=torch.long, device=self.device)
-        if not new: self.y = torch.tensor(y, dtype=torch.float32, device=self.device).view(-1, 1)
+        self.indexes = mindspore.tensor(indexes, dtype=mindspore.long)
+        if not new: self.y = mindspore.tensor(y, dtype=mindspore.float32).view(-1, 1)
 
     def _split(self, setting, fold, isTrain=True):
         if hasattr(self.handler, '_split'):
@@ -131,24 +127,6 @@ class MultiDataset(Dataset):
                 indices = np.isin(y_proteins, folds[fold])
                 self.handler.drugs, self.handler.proteins = y_durgs[indices], y_proteins[indices]
 
-    def _graph(self, matrix, neighbor_num=5, min=0.5, max=1.0):
-        size = matrix.size()[0]
-        edge_index = []
-        edge_weight = []
-        
-        for i in range(size):
-            neighbors = (-matrix[i]).argsort()
-            k = 0
-            for neighbor in neighbors:
-                if k >= neighbor_num and matrix[i][neighbor] < min: break
-                edge_index.append([neighbor, i])
-                edge_weight.append(matrix[i][neighbor])
-                if matrix[i][neighbor] < max:
-                    k += 1
-
-        return torch.tensor(edge_index, dtype=torch.long, device=self.device).t().contiguous(), \
-            torch.tensor(edge_weight, dtype=torch.float32, device=self.device)
-
     def _matrix(self, matrix, neighbor_num=5, min=0.5, max=1.0):
         size = matrix.size()[0]
         _i = np.zeros((size, size))
@@ -167,7 +145,8 @@ class MultiDataset(Dataset):
             _w[i][i] = 1.0
             _i[i][i] = 1.0
 
-        return torch.tensor(_i, dtype=torch.float32, device=self.device), torch.tensor(_w, dtype=torch.float32, device=self.device)
+        return mindspore.tensor(_i, dtype=mindspore.float32), \
+            mindspore.tensor(_w, dtype=mindspore.float32)
 
     def __getitem__(self, index):
         dindex, pindex = self.indexes[index]

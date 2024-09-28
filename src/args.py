@@ -3,6 +3,8 @@ import argparse
 class Args:
     def __init__(self, action='train'):
         self.parser = argparse.ArgumentParser()
+        self.parser.add_argument('-m', '--mindspore', default=0, type=int, metavar=None, 
+            help='Whether to use the mindspore environment')
         self.parser.add_argument('--device', default='cpu', type=str, metavar=None, 
             help='Name of the processor used for computing')
         self.parser.add_argument('-d', '--dataset', default='kiba', type=str, metavar='[kiba, davis, fdavis]', 
