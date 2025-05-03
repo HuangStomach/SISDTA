@@ -1,5 +1,4 @@
-import mindspore.nn as nn
-from mindspore.ops import operations as P
+from mindspore import mint, nn
 from src.model.layer.gcnm import GCNM
 
 class GNNM(nn.Cell):
@@ -67,7 +66,7 @@ class GNNM(nn.Cell):
         features.append(self.ecfps_sis(self.ecfps_gcn(dataset.d_ecfps, dataset.d_ew)[d_index]))
         features.append(self.gos_sis(self.gos_gcn(dataset.p_gos, dataset.p_ew)[p_index]))
 
-        feature = P.Concat(axis=1)(features)
+        feature = mint.cat(features, dim = 1)
         encoded = self.encoder(feature)
         decoded = self.decoder(encoded)
         y = self.output(encoded)

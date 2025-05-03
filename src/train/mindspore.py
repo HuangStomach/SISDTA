@@ -1,5 +1,5 @@
 import mindspore
-import mindspore.nn as mn
+from mindspore import mint
 import mindspore.dataset as ds
 
 from tqdm import tqdm
@@ -20,10 +20,10 @@ def train_mindspore(args, fold):
     trainLoader = ds.GeneratorDataset(train, shuffle=True, column_names=column_names).batch(args.batch_size)
     testLoader = ds.GeneratorDataset(test, shuffle=False, column_names=column_names).batch(args.batch_size)
 
-    mseLoss = mn.MSELoss()
-    aeMseLoss = mn.MSELoss()
+    mseLoss = mint.nn.MSELoss()
+    aeMseLoss = mint.nn.MSELoss()
     model = GNNM(args.device, args.dropout)
-    optimizer = mn.Adam(model.trainable_params(), learning_rate=args.learning_rate, weight_decay=args.weight_decay)
+    optimizer = mint.optim.Adam(model.trainable_params(), lr=args.learning_rate, weight_decay=args.weight_decay)
 
     def forward_fn(d_index, p_index, d_vecs, p_embeddings, y):
         y_bar, decoded, feature = model(d_index, p_index, d_vecs, p_embeddings, train)
@@ -40,19 +40,19 @@ def train_mindspore(args, fold):
 
     print('training fold {}...'.format(fold))
     for epoch in range(1, args.epochs + 1):
+        model.set_train()
         for d_index, p_index, d_vecs, p_embeddings, y in tqdm(trainLoader, leave=False):
             (trainLoss, trainMse) = train_step(d_index, p_index, d_vecs, p_embeddings, y)
         
         if epoch % 10 != 0 and epoch != args.epochs: continue
 
         count, testMse = 0, 0
+        model.set_train(False)
         for d_index, p_index, d_vecs, p_embeddings, y in testLoader:
             y_bar, _, _, = model(d_index, p_index, d_vecs, p_embeddings, test)
             testMse += mseLoss(y, y_bar)
             count += 1
-        print(trainLoss.asnumpy())
-        print(trainMse)
-        print(testMse / count)
+
         result = 'Fold: {} Epoch: {} train loss: {:.6f} train mse: {:.6f} test_mse: {:.6f}'.format(fold, epoch, trainLoss.asnumpy(), trainMse.item(), testMse.item() / count)
         print(result)
 

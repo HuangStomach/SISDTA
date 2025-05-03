@@ -1,6 +1,6 @@
 import math
 import mindspore
-from mindspore import nn, Parameter, Tensor
+from mindspore import mint, nn, Parameter, Tensor
 import mindspore.ops as ops
 from mindspore.common.initializer import Normal
 
@@ -44,10 +44,10 @@ class GCNM(nn.Cell):
             self.reset_parameters()
 
         # Support computation: x * W
-        support = ops.MatMul()(Tensor(x), self.weight)
+        support = mint.mm(Tensor(x), self.weight)
         
         # Output computation: A * (x * W)
-        output = ops.MatMul()(edge_index, support)
+        output = mint.mm(edge_index, support)
         
         # Add bias if exists
         if self.bias is not None:

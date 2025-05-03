@@ -1,7 +1,5 @@
 import pandas as pd
 import numpy as np
-import random
-from sklearn.model_selection import KFold
 
 class Davis:
     def __init__(self, train=True, sim_type='sis', d_threshold=0.6, p_threshold=0.6):
@@ -55,7 +53,7 @@ class Davis:
             settings = settings[np.where(settings[:, 3] == 1 if isTrain else 0)]
 
             for [drug, target, value, _] in settings:
-                indexes.append([drug, target])
+                indexes.append([int(drug), int(target)])
                 y.append(value)
 
         return (indexes, y)

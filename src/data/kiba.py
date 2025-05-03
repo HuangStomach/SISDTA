@@ -3,7 +3,7 @@ import numpy as np
 from sklearn.model_selection import KFold
 
 class Kiba:
-    def __init__(self, train = True, sim_type='sis', d_threshold=0.7, p_threshold=0.7):
+    def __init__(self, train=True, sim_type='sis', d_threshold=0.7, p_threshold=0.7):
         self.train = train
         self.sim_type = sim_type
         self.sim_neighbor_num = 5

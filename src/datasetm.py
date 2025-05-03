@@ -4,7 +4,6 @@ import random
 import numpy as np
 
 import mindspore
-from torch.utils.data import Dataset
 
 from src.data.kiba import Kiba
 from src.data.davis import Davis
@@ -17,7 +16,7 @@ handlers = {
 }
 RANDOM_STATE = random.randint(1, 100000000)
 
-class MultiDatasetM(Dataset):
+class MultiDatasetM:
     def __init__(self, 
         dataset = 'kiba', train = True, device = 'cpu', 
         sim_type = 'sis', new = False, d_threshold = 0.6, p_threshold = 0.6,
@@ -172,50 +171,6 @@ class MultiDatasetM(Dataset):
         output_dir = './output/{}/'.format(self.dataset)
         if not os.path.exists(output_dir):
             os.makedirs(output_dir)
-        pass
-
-        # print('checking data file exists...')
-        # if not os.path.exists(self.handler.d_ecfps_path):
-        #     print('generating drug ecfps...')
-        #     radius = 4
-        #     seqs = []
-        #     with open(self.handler.ligands_path) as fp:
-        #         drugs = json.load(fp)
-
-        #         for drug in drugs:
-        #             try:
-        #                 smiles = drugs[drug]
-        #                 mol = Chem.MolFromSmiles(smiles)
-        #                 seqs.append(AllChem.GetMorganFingerprintAsBitVect(mol, radius, nBits=1024).ToList())
-        #             except Exception as e:
-        #                 print(drug)
-        #     np.savetxt(self.handler.d_ecfps_path, seqs, fmt='%d', delimiter=',')
-
-        # if not os.path.exists(self.handler.d_vecs_path):
-        #     print('generating drug vectors...')
-        #     with open(self.handler.ligands_path) as fp:
-        #         drugs = json.load(fp)
-        #     smiles = [drugs[drug] for drug in drugs]
-        #     featurizer = dc.feat.Mol2VecFingerprint()
-        #     features = featurizer.featurize(smiles)
-
-        #     np.savetxt(self.handler.d_vecs_path, features, fmt='%s', delimiter=',')
-
-        # if not os.path.exists(self.handler.setting2_path):
-        #     dsize = np.loadtxt(self.handler.d_vecs_path, delimiter=',', dtype=float, comments=None).shape[0]
-        #     kf = KFold(n_splits=5, shuffle=True)
-        #     folds = []
-        #     for _, test in kf.split(list(range(dsize))):
-        #         folds.append(list(test))
-        #     with open(self.handler.setting2_path, "w") as f: json.dump(folds, f, default=int)
-
-        # if not os.path.exists(self.handler.setting3_path):
-        #     psize = pd.read_csv(self.handler.p_gos_path, delimiter=',', header=0, index_col=0).shape[0]
-        #     kf = KFold(n_splits=5, shuffle=True)
-        #     folds = []
-        #     for _, test in kf.split(list(range(psize))):
-        #         folds.append(list(test))
-        #     with open(self.handler.setting3_path, "w") as f: json.dump(folds, f, default=int)
 
     @staticmethod
     def fold_size(setting):
